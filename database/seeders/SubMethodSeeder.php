@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\SubMethod;
+use App\Models\Submethod;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -13,19 +13,19 @@ class SubMethodSeeder extends Seeder
      */
     public function run(): void
     {
-        SubMethod::create([
+        Submethod::create([
             'name' => 'Whatsapp',
             'method_id' => 1,
         ]);
-        SubMethod::create([
+        Submethod::create([
             'name' => 'Email',
             'method_id' => 1,
         ]);
-        SubMethod::create([
+        Submethod::create([
             'name' => 'Instagram/Facebook',
             'method_id' => 1,
         ]);
-        SubMethod::create([
+        Submethod::create([
             'name' => 'Datang Langsung',
             'method_id' => 2,
         ]);
