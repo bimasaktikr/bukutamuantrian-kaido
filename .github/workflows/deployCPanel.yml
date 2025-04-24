@@ -18,7 +18,7 @@ jobs:
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.2'
+          php-version: "8.2"
           extensions: mbstring, xml, bcmath, opcache, zip
 
       # Install Composer dependencies
@@ -28,11 +28,11 @@ jobs:
           php composer.phar install --no-dev --optimize-autoloader
 
       # Decrypt the .env file using the ENV_KEY from GitHub Secrets
-      - name: Decrypt .env
-        run: |
-          echo "Decrypting .env file"
-          echo "ENV_KEY=${{ secrets.ENV_KEY }}" >> .env
-          php artisan env:decrypt  # Decrypt the encrypted .env file
+      # - name: Decrypt .env
+      #   run: |
+      #     echo "Decrypting .env file"
+      #     echo "ENV_KEY=${{ secrets.ENV_KEY }}" >> .env
+      #     php artisan env:decrypt  # Decrypt the encrypted .env file
 
       # Upload the files via FTP
       - name: Upload to FTP
@@ -41,5 +41,5 @@ jobs:
           ftp-server: ${{ secrets.FTP_SERVER }}
           ftp-username: ${{ secrets.FTP_USERNAME }}
           ftp-password: ${{ secrets.FTP_PASSWORD }}
-          local-dir: ./  # Root directory
-          remote-dir: /home/bpskotam/bukutamu.bpskotamalang.id  # Remote directory path
+          local-dir: ./ # Root directory
+          remote-dir: /home/bpskotam/bukutamu.bpskotamalang.id # Remote directory path
