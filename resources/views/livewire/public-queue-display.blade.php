@@ -96,8 +96,5 @@
                 window.Livewire.dispatch('queueUpdated', event.data);
             });
     });
-    // Handle the play alert sound on Livewire initialization
-
-
 </script>
 
