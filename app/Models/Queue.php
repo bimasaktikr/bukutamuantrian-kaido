@@ -11,7 +11,6 @@ class Queue extends Model
 
     // add fillable
     protected $fillable = [
-        'date',
         'number',
         'transaction_id',
         'operator_id',

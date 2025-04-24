@@ -13,11 +13,8 @@ return new class extends Migration
     {
         Schema::create('queues', function (Blueprint $table) {
             $table->id();
-            $table->date('date');
             $table->integer('number');
             $table->foreignId('transaction_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('operator_id')->nullable()->constrained()->cascadeOnDelete();
-            $table->enum('status', ['queue', 'onprocess', 'done'])->default('queue');
             $table->timestamps();
         });
     }

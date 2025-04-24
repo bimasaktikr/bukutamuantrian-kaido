@@ -2,8 +2,8 @@
 
 namespace App\Providers\Filament;
 
-use App\Filament\Guest\Pages\PublicTransaction;
-use App\Filament\Pages\DashboardAntrian;
+// use App\Filament\Pages\PublicTransaction;
+use App\Filament\Guest\Pages\DashboardQueue;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
@@ -33,11 +33,8 @@ class GuestPanelProvider extends PanelProvider
             ->discoverResources(in: app_path('Filament/Guest/Resources'), for: 'App\\Filament\\Guest\\Resources')
             ->discoverPages(in: app_path('Filament/Guest/Pages'), for: 'App\\Filament\\Guest\\Pages')
             ->pages([
-                // Pages\Dashboard::class,
-                PublicTransaction::class,
-                // DashboardAntrian::class,
-                // \App\Filament\Guest\Pages\QueueDisplay::class,
-            ])
+                DashboardQueue::class,
+                ])
             ->discoverWidgets(in: app_path('Filament/Guest/Widgets'), for: 'App\\Filament\\Guest\\Widgets')
             ->widgets([
                 Widgets\FilamentInfoWidget::class,

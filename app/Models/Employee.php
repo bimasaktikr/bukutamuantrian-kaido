@@ -4,12 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class University extends Model
+class Employee extends Model
 {
-
+    //
 
     // add fillable
-    protected $fillable = ['name'];
+    protected $fillable = [];
     // add guaded
     protected $guarded = ['id'];
     // add hidden

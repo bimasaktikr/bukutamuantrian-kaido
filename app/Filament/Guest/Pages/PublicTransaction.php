@@ -28,6 +28,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\HtmlString;
 
+
 /**
  * Service that we use
  */
@@ -294,6 +295,7 @@ class PublicTransaction extends Page implements HasForms
                 $transactionService = app(TransactionService::class);
                 // Collect form data
                 $data = [
+                    'date' => Carbon::today(),
                     'customer_id' => $this->customer->id,
                     'service_id' => $this->form->getState()['service_id'],
                     'purpose_id' => $this->form->getState()['purpose_id'],

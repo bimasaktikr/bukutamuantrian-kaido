@@ -35,6 +35,23 @@ class QueueResource extends Resource
 
     protected static ?string $navigationGroup = 'Main';
 
+
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::whereHas('transaction', function ($query) {
+            $query->where('status', 'queue');
+        })->count();
+    }
+
+    public static function getNavigationBadgeColor(): ?string
+    {
+        $count = static::getModel()::whereHas('transaction', function ($query) {
+            $query->where('status', 'queue');
+        })->count();
+
+        return $count > 0 ? 'warning' : 'primary';
+    }
+
     public static function form(Form $form): Form
     {
         return $form
@@ -53,7 +70,9 @@ class QueueResource extends Resource
                 TextColumn::make('transaction.customer.institution.name'),
                 TextColumn::make('transaction.service.name')
                     ->label('Nama Layanan'),
-                TextColumn::make('date'),
+                TextColumn::make('transaction.date')
+                    ->label('Tanggal'),
+                    // ->date(), // Format the date column,
                 TextColumn::make('number')
                     ->label('Nomor Antrian')
                     ->formatStateUsing(function ($state, $record) {
@@ -105,6 +124,7 @@ class QueueResource extends Resource
 
                         // Optional: Log successful status updates
                         Log::info("Status antrian {$record->id} diubah menjadi {$state}");
+                        $record->transaction?->update(['status' => $state]); // fallback, just in case
                     }),
             ])
             ->filters([
@@ -124,7 +144,7 @@ class QueueResource extends Resource
                                 ? $query->where('status', $data['status'])
                                 : $query;
                         }),
-                    Filter::make('date')
+                    Filter::make('transaction.date')
                         ->label('Filter by Date')
                         ->form([
                                 DatePicker::make('date')->label('Tanggal'),
@@ -200,6 +220,7 @@ class QueueResource extends Resource
             'index' => Pages\ListQueues::route('/'),
             'create' => Pages\CreateQueue::route('/create'),
             'edit' => Pages\EditQueue::route('/{record}/edit'),
+            'display' => Pages\QueueDisplay::route('/display'),
         ];
     }
 }

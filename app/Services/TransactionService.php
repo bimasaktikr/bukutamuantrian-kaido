@@ -11,7 +11,8 @@ use App\Services\QueueService;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
-use Notification;
+use Filament\Notifications\Notification;
+
 
 class TransactionService
 {
@@ -36,6 +37,7 @@ class TransactionService
                 'service_id' => $data['service_id'],
                 'purpose_id' => $data['purpose_id'],
                 'submethod_id' => $data['submethod_id'],
+                'date' => $data['date'],
             ]);
 
             $submethod = Submethod::find($data['submethod_id']);

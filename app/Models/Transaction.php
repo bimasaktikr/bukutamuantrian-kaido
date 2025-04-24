@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Transaction extends Model
 {
@@ -15,6 +16,8 @@ class Transaction extends Model
         'submethod_id',
         'service_id',
         'purpose_id',
+        'status',
+        'date',
     ];
     // add guaded
     protected $guarded = ['id'];
@@ -41,8 +44,13 @@ class Transaction extends Model
         return $this->belongsTo(SubMethod::class);
     }
 
-    public function queue(): BelongsTo
+    public function queue(): HasOne
     {
-        return $this->belongsTo(Queue::class);
+        return $this->hasOne(Queue::class);
     }
+    // public function queue(): BelongsTo
+    // {
+    //     return $this->belongsTo(Queue::class);
+    // }
+
 }

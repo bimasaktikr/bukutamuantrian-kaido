@@ -17,6 +17,8 @@ return new class extends Migration
             $table->foreignId('submethod_id')->constrained()->cascadeOnDelete();
             $table->foreignId('service_id')->constrained()->cascadeOnDelete();
             $table->foreignId('purpose_id')->constrained()->cascadeOnDelete();
+            $table->enum('status', ['queue', 'onprocess', 'done'])->default('queue');
+            $table->date('date')->nullable();
             $table->timestamps();
         });
     }

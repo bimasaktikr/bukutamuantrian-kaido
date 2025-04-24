@@ -1,0 +1,103 @@
+<div class="w-full text-gray-900 bg-gray-100 dark:bg-gray-900 dark:text-gray-100">
+    <div class="grid h-screen gap-4 p-4 md:grid-cols-2 md:grid-rows-3">
+
+        <!-- Video Display (2 columns, 2 rows) -->
+        <div class="col-span-1 row-span-2 overflow-hidden bg-white rounded-lg shadow-lg dark:bg-gray-800">
+            <iframe
+            class="w-full h-full"
+            src="{{ $videoUrl }}"
+            frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen>
+        </iframe>
+        </div>
+
+        <!-- Current Number Display (1 column, 2 rows) -->
+        <div class="col-span-1 row-span-2 p-4 bg-white rounded-lg shadow-lg dark:bg-gray-800">
+            <div class="mb-4 text-center">
+                <h2 class="text-2xl font-bold text-gray-800 dark:text-white">{{ $counterName }}</h2>
+                <p class="text-gray-500 dark:text-gray-300">Now Serving</p>
+            </div>
+
+            @if($currentTransaction)
+                <div class="flex flex-col items-center justify-center flex-grow">
+                    <div class="font-bold text-blue-600 dark:text-blue-400 text-8xl">
+                        {{ $currentTransaction->queue->number }}
+                    </div>
+                    <div class="mt-6 text-4xl font-medium text-center">
+                        {{ $currentTransaction->customer->name }}
+                    </div>
+                </div>
+            @else
+                <div class="flex items-center justify-center flex-grow">
+                    <p class="text-3xl text-gray-400 dark:text-gray-500">No customer being served</p>
+                </div>
+            @endif
+        </div>
+
+        <!-- Queue List Display (2 columns, 1 row) -->
+        <div class="row-start-3 p-4 bg-white rounded-lg shadow-lg md:col-span-2 dark:bg-gray-800">
+            <div class="grid h-full grid-cols-2">
+                <!-- Waiting Queue -->
+                <div class="pr-4 border-r border-gray-200 dark:border-gray-700">
+                    <h3 class="mb-2 text-xl font-bold text-gray-800 dark:text-white">Waiting Queue</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        @forelse($queueList as $transaction)
+                            <div class="flex items-center p-3 rounded-lg bg-blue-50 dark:bg-blue-900">
+                                <div class="mr-4 text-3xl font-bold text-blue-600 dark:text-blue-300">
+                                    {{ $transaction->queue->number }}
+                                </div>
+                                <div class="truncate">
+                                    <div class="font-medium truncate">{{ $transaction->customer->name }}</div>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="flex items-center justify-center col-span-2 py-6 text-gray-500 dark:text-gray-400">
+                                No customers waiting
+                            </div>
+                        @endforelse
+                    </div>
+                </div>
+
+                <!-- Completed Queue -->
+                <div class="pl-4">
+                    <h3 class="mb-2 text-xl font-bold text-gray-800 dark:text-white">Recently Completed</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        @forelse($completedList as $transaction)
+                            <div class="flex items-center p-3 rounded-lg bg-green-50 dark:bg-green-900">
+                                <div class="mr-4 text-3xl font-bold text-green-600 dark:text-green-300">
+                                    {{ $transaction->queue->number }}
+                                </div>
+                                <div class="truncate">
+                                    <div class="font-medium truncate">{{ $transaction->customer->name }}</div>
+                                    <div class="text-xs text-gray-500 dark:text-gray-300">
+                                        {{ $transaction->updated_at->format('h:i A') }}
+                                    </div>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="flex items-center justify-center col-span-2 py-6 text-gray-500 dark:text-gray-400">
+                                No completed transactions today
+                            </div>
+                        @endforelse
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+<!-- Pusher for real-time updates -->
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        window.Echo.channel('queue-channel')
+            .listen('.queueUpdated', (event) => {
+                console.log("📣 Reverb event received", event);
+                window.Livewire.dispatch('queueUpdated', event.data);
+            });
+    });
+    // Handle the play alert sound on Livewire initialization
+
+
+</script>
+
