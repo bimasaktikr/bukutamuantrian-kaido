@@ -1,0 +1,45 @@
+name: Deploy Laravel to Server
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the repository code
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Set up PHP
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, xml, bcmath, opcache, zip
+
+      # Install Composer dependencies
+      - name: Install Composer dependencies
+        run: |
+          curl -sS https://getcomposer.org/installer | php
+          php composer.phar install --no-dev --optimize-autoloader
+
+      # Decrypt the .env file using the ENV_KEY from GitHub Secrets
+      - name: Decrypt .env
+        run: |
+          echo "Decrypting .env file"
+          echo "ENV_KEY=${{ secrets.ENV_KEY }}" >> .env
+          php artisan env:decrypt  # Decrypt the encrypted .env file
+
+      # Upload the files via FTP
+      - name: Upload to FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.0.0
+        with:
+          ftp-server: ${{ secrets.FTP_SERVER }}
+          ftp-username: ${{ secrets.FTP_USERNAME }}
+          ftp-password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./  # Root directory
+          remote-dir: /home/bpskotam/bukutamu.bpskotamalang.id  # Remote directory path
