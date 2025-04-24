@@ -42,4 +42,4 @@ jobs:
           ftp-username: ${{ secrets.FTP_USERNAME }}
           ftp-password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./ # Root directory
-          remote-dir: /home/bpskotam/bukutamu.bpskotamalang.id # Remote directory path
+          server-dir: /home/bpskotam/bukutamu.bpskotamalang.id # Remote directory path
