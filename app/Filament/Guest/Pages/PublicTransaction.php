@@ -211,7 +211,7 @@ class PublicTransaction extends Page implements HasForms
                         ->schema([
                             Select::make('submethod_id')
                                 ->label('Pilih Media Layanan')
-                                ->options(SubMethod::all()->pluck('name', 'id'))
+                                ->options(Submethod::all()->pluck('name', 'id'))
                                 ->required(),
                             Select::make('purpose_id')
                                 ->label('Tujuan Penggunaan Layanan')

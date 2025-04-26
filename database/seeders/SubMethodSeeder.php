@@ -6,7 +6,7 @@ use App\Models\Submethod;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
-class SubMethodSeeder extends Seeder
+class SubmethodSeeder extends Seeder
 {
     /**
      * Run the database seeds.

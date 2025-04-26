@@ -12,7 +12,7 @@ class WhatsappService
     public function __construct()
     {
         // Set the base URL of the Node.js server
-        $this->hostUrl = 'http://localhost:3000'; // Change this to your Node.js server URL and port if necessary
+        $this->hostUrl = 'http://ws.bpskotamalang.id'; // Change this to your Node.js server URL and port if necessary
     }
 
     /**
@@ -40,12 +40,12 @@ class WhatsappService
             // Check if the request was successful
             $responseBody = $response->body();
             $decodedResponse = json_decode($responseBody, true);  // Decode to array
-        
+
             if (json_last_error() !== JSON_ERROR_NONE) {
                 Log::error("JSON Decode Error: " . json_last_error_msg());
                 throw new \Exception('Failed to decode JSON response from Node.js');
             }
-        
+
             if ($response->successful()) {
                 Log::info("Message sent successfully: " . json_encode($decodedResponse));
                 return $decodedResponse;

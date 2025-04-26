@@ -41,7 +41,7 @@ class Transaction extends Model
 
     public function sub_method(): BelongsTo
     {
-        return $this->belongsTo(SubMethod::class);
+        return $this->belongsTo(Submethod::class);
     }
 
     public function queue(): HasOne
