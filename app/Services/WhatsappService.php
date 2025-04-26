@@ -2,17 +2,20 @@
 
 namespace App\Services;
 
+use App\Models\Whatsapp;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class WhatsappService
 {
     protected $hostUrl;
+    protected $APIKey;
 
     public function __construct()
     {
         // Set the base URL of the Node.js server
-        $this->hostUrl = 'http://ws.bpskotamalang.id'; // Change this to your Node.js server URL and port if necessary
+        $this->hostUrl = Whatsapp::latest()->value('server_host_url');// Change this to your Node.js server URL and port if necessary
+        $this->APIKey = Whatsapp::latest()->value('key');// Change this to your Node.js server URL and port if necessary
     }
 
     /**
@@ -31,7 +34,9 @@ class WhatsappService
             $number = $data['number'];
             $message = $data['message'];
             // Send HTTP POST request to Node.js server
-            $response = Http::post("{$this->hostUrl}/send-message", [
+            $response = Http::withHeaders([
+                'x-api-key' => $this->APIKey,
+            ])->post("{$this->hostUrl}/send-message", [
                 'number' => $number,
                 'message' => $message,
             ]);

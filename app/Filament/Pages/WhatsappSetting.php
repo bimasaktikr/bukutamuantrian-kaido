@@ -20,21 +20,22 @@ class WhatsappSetting extends SettingsPage
     {
         return $form
             ->schema([
-                Forms\Components\Toggle::make('status')
-                    ->label('Active Status')
-                    ->required(),
                 Forms\Components\TextInput::make('key')
                     ->label('API Key')
                     ->required(),
                 Forms\Components\TextInput::make('session_name')
                     ->label('Session Name')->required(),
-                Forms\Components\TextInput::make('token')
-                    ->label('Token')
-                    ->nullable(),
+                    // Forms\Components\TextInput::make('token')
+                    //     ->label('Token')
+                    //     ->nullable(),
                 Forms\Components\TextInput::make('server_host_url')
                     ->label('Server Host URL')
                     ->url()
                     ->nullable(),
+                // Forms\Components\Toggle::make('status')
+                //     ->label('Active Status')
+                //     ->disabled()
+                //     ->required(),
             ]);
     }
 }

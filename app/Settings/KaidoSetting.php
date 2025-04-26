@@ -14,7 +14,7 @@ class KaidoSetting extends Settings
     public bool $login_enabled;
     public bool $password_reset_enabled;
     public bool $sso_enabled;
-    // public bool $whatsapp_server;
+    public bool $whatsapp_server;
 
     public static function group(): string
     {
