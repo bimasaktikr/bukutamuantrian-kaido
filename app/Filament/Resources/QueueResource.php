@@ -33,7 +33,11 @@ class QueueResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
-    protected static ?string $navigationGroup = 'Main';
+    protected static ?string $navigationGroup = 'Transaction';
+
+    protected static ?string $navigationLabel = 'Daftar Antrian';
+
+    protected static ?int $navigationSort = 2;
 
 
     public static function getNavigationBadge(): ?string

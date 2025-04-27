@@ -2,7 +2,6 @@
 
 namespace App\Providers\Filament;
 
-use App\Filament\Pages\CallQueuePage;
 use App\Filament\Pages\Login;
 use App\Settings\KaidoSetting;
 use Filament\Http\Middleware\Authenticate;
@@ -67,11 +66,10 @@ class AdminPanelProvider extends PanelProvider
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([
                 Pages\Dashboard::class,
-                CallQueuePage::class,
             ])
             ->navigationGroups([
                 'Dashboard',       // 1st group
-                'Main',      // 2nd group
+                'Transaction',      // 2nd group
                 'Data',         // 3rd group
                 'Settings',        // 4th group
             ])

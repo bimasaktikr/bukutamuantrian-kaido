@@ -21,6 +21,11 @@ class WorkResource extends Resource
 
     protected static ?string $navigationGroup = 'Data';
 
+
+    protected static ?string $navigationLabel = 'Pekerjaan';
+
+    protected static ?int $navigationSort = 4;
+
     public static function form(Form $form): Form
     {
         return $form

@@ -22,7 +22,11 @@ class TransactionResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
-    protected static ?string $navigationGroup = 'Main';
+    protected static ?string $navigationGroup = 'Transaction';
+
+    protected static ?string $navigationLabel = 'Daftar Transaksi';
+
+    protected static ?int $navigationSort = 1;
 
     public static function form(Form $form): Form
     {
@@ -122,8 +126,32 @@ class TransactionResource extends Resource
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\Action::make('UpdateStatus')
+                    ->label('')
+                    ->form([
+                        Forms\Components\Select::make('status')
+                            ->label('Status')
+                            ->options([
+                                'queue' => 'Queue',
+                                'onprocess' => 'On Process',
+                                'done' => 'Done',
+                            ])
+                            ->required(),
+                    ])
+                    ->action(function (Transaction $record, array $data) {
+                        $record->update([
+                            'status' => $data['status'],
+                        ]);
+
+                        Log::info("Status updated for transaction {$record->id}");
+                    })
+                    ->modalHeading('Update Transaction Status')
+                    ->modalButton('Save')
+                    ->color('primary')  // warna tombol
+                    ->icon('heroicon-m-adjustments-horizontal'),  // ic
+                // Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
+
 
             ])
             ->bulkActions([

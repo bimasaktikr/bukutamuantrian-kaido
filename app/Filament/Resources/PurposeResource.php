@@ -21,6 +21,11 @@ class PurposeResource extends Resource
 
     protected static ?string $navigationGroup = 'Data';
 
+
+    protected static ?string $navigationLabel = 'Tujuan';
+
+    protected static ?int $navigationSort = 5;
+
     public static function form(Form $form): Form
     {
         return $form

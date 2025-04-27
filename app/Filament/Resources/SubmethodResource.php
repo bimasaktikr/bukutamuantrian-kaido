@@ -24,6 +24,10 @@ class SubmethodResource extends Resource
 
     protected static ?string $navigationGroup = 'Data';
 
+    protected static ?string $navigationLabel = 'Media Layanan';
+
+    protected static ?int $navigationSort = 6;
+
     public static function form(Form $form): Form
     {
         return $form
