@@ -1,7 +1,7 @@
-<div class="w-full text-gray-900 bg-gray-100 dark:bg-gray-900 dark:text-gray-100">
+<div class="w-full text-gray-900 bg-gray-100 dark:bg-gray-900 dark:text-gray-100" wire:poll.5s="loadQueueData">
     <div class="grid h-screen gap-4 p-4 md:grid-cols-2 md:grid-rows-3">
 
-        <!-- Video Display (2 columns, 2 rows) -->
+        <!-- Tampilan Video (2 kolom, 2 baris) -->
         <div class="col-span-1 row-span-2 overflow-hidden bg-white rounded-lg shadow-lg dark:bg-gray-800">
             <iframe
             class="w-full h-full"
@@ -12,11 +12,11 @@
         </iframe>
         </div>
 
-        <!-- Current Number Display (1 column, 2 rows) -->
+        <!-- Tampilan Nomor Saat Ini (1 kolom, 2 baris) -->
         <div class="col-span-1 row-span-2 p-4 bg-white rounded-lg shadow-lg dark:bg-gray-800">
             <div class="mb-4 text-center">
                 <h2 class="text-2xl font-bold text-gray-800 dark:text-white">{{ $counterName }}</h2>
-                <p class="text-gray-500 dark:text-gray-300">Now Serving</p>
+                <p class="text-gray-500 dark:text-gray-300">Sedang Dilayani</p>
             </div>
 
             @if($currentTransaction)
@@ -30,17 +30,17 @@
                 </div>
             @else
                 <div class="flex items-center justify-center flex-grow">
-                    <p class="text-3xl text-gray-400 dark:text-gray-500">No customer being served</p>
+                    <p class="text-3xl text-gray-400 dark:text-gray-500">Belum ada pelanggan</p>
                 </div>
             @endif
         </div>
 
-        <!-- Queue List Display (2 columns, 1 row) -->
+        <!-- Tampilan Daftar Antrian (2 kolom, 1 baris) -->
         <div class="row-start-3 p-4 bg-white rounded-lg shadow-lg md:col-span-2 dark:bg-gray-800">
             <div class="grid h-full grid-cols-2">
-                <!-- Waiting Queue -->
+                <!-- Antrian Menunggu -->
                 <div class="pr-4 border-r border-gray-200 dark:border-gray-700">
-                    <h3 class="mb-2 text-xl font-bold text-gray-800 dark:text-white">Waiting Queue</h3>
+                    <h3 class="mb-2 text-xl font-bold text-gray-800 dark:text-white">Antrian Menunggu</h3>
                     <div class="grid grid-cols-2 gap-4">
                         @forelse($queueList as $transaction)
                             <div class="flex items-center p-3 rounded-lg bg-blue-50 dark:bg-blue-900">
@@ -53,15 +53,15 @@
                             </div>
                         @empty
                             <div class="flex items-center justify-center col-span-2 py-6 text-gray-500 dark:text-gray-400">
-                                No customers waiting
+                                Tidak ada pelanggan menunggu
                             </div>
                         @endforelse
                     </div>
                 </div>
 
-                <!-- Completed Queue -->
+                <!-- Antrian Selesai -->
                 <div class="pl-4">
-                    <h3 class="mb-2 text-xl font-bold text-gray-800 dark:text-white">Recently Completed</h3>
+                    <h3 class="mb-2 text-xl font-bold text-gray-800 dark:text-white">Baru Saja Selesai</h3>
                     <div class="grid grid-cols-2 gap-4">
                         @forelse($completedList as $transaction)
                             <div class="flex items-center p-3 rounded-lg bg-green-50 dark:bg-green-900">
@@ -77,7 +77,7 @@
                             </div>
                         @empty
                             <div class="flex items-center justify-center col-span-2 py-6 text-gray-500 dark:text-gray-400">
-                                No completed transactions today
+                                Tidak ada transaksi selesai hari ini
                             </div>
                         @endforelse
                     </div>
@@ -85,16 +85,15 @@
             </div>
         </div>
     </div>
-<!-- Pusher for real-time updates -->
 
-
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        window.Echo.channel('queue-channel')
-            .listen('.queueUpdated', (event) => {
-                console.log("📣 Reverb event received", event);
-                window.Livewire.dispatch('queueUpdated', event.data);
-            });
-    });
-</script>
-
+    <!-- Pusher untuk pembaruan real-time -->
+    {{-- <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            window.Echo.channel('queue-channel')
+                .listen('.queueUpdated', (event) => {
+                    console.log("📣 Event antrian diterima", event);
+                    window.Livewire.dispatch('queueUpdated', event.data);
+                });
+        });
+    </script> --}}
+</div>

@@ -86,50 +86,16 @@ class QueueResource extends Resource
                     })
                     ->sortable()
                     ->alignCenter(),
-                SelectColumn::make('status')
+                TextColumn::make('transaction.status')
                     ->label('Status')
-                    ->options([
-                        'queue' => 'Queue',
-                        'onprocess' => 'On Process',
-                        'done' => 'Done',
-                    ])
+                    ->badge()
+                    ->color(fn ($state) => match ($state) {
+                        'queue' => 'gray',
+                        'onprocess' => 'warning',
+                        'done' => 'success',
+                    })
                     ->sortable()
-                    ->searchable()
-                    ->rules(['required'])
-                    ->afterStateUpdated(function ($record, $state) {
-                        // Prevent status from going backwards (Queue → On Process → Done)
-
-                        // Case: Moving from 'Queue' to 'On Process' or 'Done' is allowed
-                        if ($record->status === 'queue' && $state === 'onprocess') {
-                            // No issue with this transition
-                            Log::info("Status antrian {$record->id} diubah menjadi 'On Process'");
-                            return;
-                        }
-
-                        // Case: Moving from 'On Process' to 'Done' is allowed
-                        if ($record->status === 'onprocess' && $state === 'done') {
-                            // No issue with this transition
-                            Log::info("Status antrian {$record->id} diubah menjadi 'Done'");
-                            return;
-                        }
-
-                        // Prevent status from going backward
-                        if ($record->status === 'onprocess' && $state === 'queue') {
-                            session()->flash('error', 'Cannot revert to Queue while On Process');
-                            Log::error("Attempted invalid status change from 'On Process' to 'Queue' for record {$record->id}");
-                            return; // Prevent the state change
-                        }
-
-                        if ($record->status === 'done' && ($state === 'queue' || $state === 'onprocess')) {
-                            session()->flash('error', 'Cannot revert to previous statuses from Done');
-                            Log::error("Attempted invalid status change from 'Done' to 'Queue' or 'On Process' for record {$record->id}");
-                            return; // Prevent the state change
-                        }
-
-                        // Optional: Log successful status updates
-                        Log::info("Status antrian {$record->id} diubah menjadi {$state}");
-                        $record->transaction?->update(['status' => $state]); // fallback, just in case
-                    }),
+                    ->searchable(),
             ])
             ->filters([
                 Filter::make('status')
@@ -155,55 +121,14 @@ class QueueResource extends Resource
                             ])
                         ->query(function (Builder $query, array $data): Builder {
                             return $data['date']
-                                ? $query->whereDate('date', $data['date'])
+                                ? $query->whereHas('transaction', function (Builder $query) use ($data) {
+                                    $query->whereDate('date', $data['date']);
+                                })
                                 : $query;
                         }),
             ])
             ->actions([
-                // Action::make('call')
-                //     ->label('Panggil')
-                //     ->icon('heroicon-o-megaphone')
-                //     ->color('success')
-                //     ->requiresConfirmation()
-                //     ->after(function ($record, Livewire $livewire) {
-                //         $livewire->dispatchBrowserEvent('call-queue', [
-                //             'prefix' => $record->transaction->service->code,
-                //             'number' => $record->number,
-                //             'name' => $record->transaction->customer->name,
-                //         ]);
-                //     }),
-                // Tables\Actions\EditAction::make(),
-                // Tables\Actions\DeleteAction::make(),
-                // Action::make('call')
-                //     ->label('Panggil')
-                //     ->icon('heroicon-o-megaphone')
-                //     ->color('success')
-                //     ->requiresConfirmation()
-                //     ->action(function ($record, Livewire $livewire) {
-                //         $prefix = $record->transaction->service->code ?? '';
-                //         $number = str_pad($record->number, 3, '0', STR_PAD_LEFT);
-                //         $name = $record->transaction->customer->name;
-
-                //         $livewire->dispatchBrowserEvent('call-queue', [
-                //             'prefix' => $prefix,
-                //             'number' => $number,
-                //             'name' => $name,
-                //         ]);
-                //     }),
-                Action::make('call')
-                    ->label('Panggil')
-                    ->icon('heroicon-o-megaphone')
-                    ->color('success')
-                    ->disabled(fn ($record) => $record->status !== 'onprocess') // Disable if status is not 'On Process'
-                    ->modalHeading('Memanggil Antrian')
-                    ->modalSubmitActionLabel('Panggil Sekarang')
-                    ->modalContent(function ($record) {
-                        return FilamentView::make('filament.pages.actions.call-queue')
-                            ->viewData(['record' => $record]);
-                    })
-                    ->action(fn () => null),
-
-                ], position: ActionsPosition::BeforeColumns)
+            ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
