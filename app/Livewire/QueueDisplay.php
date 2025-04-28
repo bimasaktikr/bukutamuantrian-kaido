@@ -63,7 +63,7 @@ class QueueDisplay extends Component
         // Get the completed transactions for today
         $this->completedList = Transaction::whereHas('queue')
             ->where('status', 'done')
-            ->whereDate('date', now())
+            ->whereDate('date',Carbon::today())
             ->with(['queue', 'customer', 'service', 'purpose'])
             ->orderBy('updated_at', 'desc')
             ->limit(10)
@@ -84,7 +84,7 @@ class QueueDisplay extends Component
             // Get the next transaction in queue
             $nextTransaction = Transaction::whereHas('queue')
                 ->where('status', 'queue')
-                ->where('date', now())
+                ->where('date', Carbon::today())
                 ->orderBy('created_at')
                 ->first();
 
