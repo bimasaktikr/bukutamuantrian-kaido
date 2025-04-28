@@ -39,7 +39,7 @@ class Transaction extends Model
         return $this->belongsTo(Purpose::class);
     }
 
-    public function sub_method(): BelongsTo
+    public function submethod(): BelongsTo
     {
         return $this->belongsTo(Submethod::class);
     }

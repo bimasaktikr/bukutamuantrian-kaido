@@ -35,6 +35,7 @@ use Illuminate\Support\HtmlString;
 
 use App\Services\CustomerService;
 use App\Services\TransactionService;
+use Livewire\Attributes\On;
 
 class PublicTransaction extends Page implements HasForms
 {
@@ -47,7 +48,6 @@ class PublicTransaction extends Page implements HasForms
     protected static ?string $navigationLabel = 'Pendaftaran Layanan';
 
     protected static ?string $slug = 'public';
-
 
     public function getTitle(): string
     {
@@ -83,7 +83,7 @@ class PublicTransaction extends Page implements HasForms
     public $services;
     public $selectedService;
 
-    public $openModal = false;
+    public $showQueueModal  = false;
 
     // protected bool $showTransactionModal = false;
 
@@ -336,23 +336,19 @@ class PublicTransaction extends Page implements HasForms
                 ->body('Data saved successfully')
                 ->send();
 
-            // try {
+            // $this->showQueueModal = true;
+            if ($this->transaction->submethod->method_id == 2) {
+                // Show the queue modal
+                $this->showQueueModal = true;
+                $this->dispatch('showQueueModal', $this->transaction->id);
+            } else {
+                // Redirect to the public page
+                return redirect()->route('filament.guest.pages.public');
+            }
+            $this->dispatch('showQueueModal', $this->transaction->id);
 
-            //     $this->emit('showTransactionModal', $this->transaction, $this->customer, $this->queue);
-            //     // dd($this->transaction);
-            // } catch (\Exception $e) {
-            //     Log::error('Error show Modal: ' . $e->getMessage());
 
-            //     // Notify the user with an error message
-            //     Notification::make()
-            //         ->danger()
-            //         ->title('Error')
-            //         ->body('An error occurred while show modal :' . $e->getMessage())
-            //         ->send();
-            // }
-            // Redirect to the desired route with success message
-            return redirect()->route('filament.guest.pages.public')
-                ->with('success', 'Data saved successfully.');
+            // return redirect()->route('filament.guest.pages.public');
         } catch (\Exception $e) {
             // Rollback in case of any unforeseen errors
             DB::rollBack();
@@ -371,21 +367,4 @@ class PublicTransaction extends Page implements HasForms
         }
     }
 
-    public function getListeners(): array
-    {
-        return [
-            'showTransactionModal' => 'openModal',
-        ];
-    }
-
-    public function openModal($transaction, $customer, $queue)
-    {
-        // Set the data you want to pass to the modal
-        $this->transaction = $transaction;
-        $this->customer = $customer;
-        $this->queue = $queue;
-
-        // Open the modal
-        $this->openModal = true;
-    }
 }

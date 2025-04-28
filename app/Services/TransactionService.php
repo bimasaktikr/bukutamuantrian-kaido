@@ -59,7 +59,9 @@ class TransactionService
 
 
         try {
-            $this->sendTransactionMessage($transaction);
+            if ($submethod->method_id != 2) {
+                $this->sendTransactionMessage($transaction);
+            }
         } catch (\Exception $e) {
             // Log the error
             Log::error('Error Sending Message for Transaction: ' . $e->getMessage());
