@@ -1,4 +1,5 @@
 <x-filament-panels::page>
+    <panels::theme-switcher.system-button>
     <div class="mb-4 text-center">
         <h1 class="text-2xl font-bold">BUKU TAMU</h1>
         <h2 class="text-xl">PELAYANAN BPS KOTA MALANG</h2>

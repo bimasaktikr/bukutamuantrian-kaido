@@ -4,6 +4,7 @@ namespace App\Providers\Filament;
 
 // use App\Filament\Pages\PublicTransaction;
 use App\Filament\Guest\Pages\DashboardQueue;
+use App\Filament\Guest\Pages\PublicTransaction;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
@@ -12,6 +13,7 @@ use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
 use Filament\Widgets;
+use Hasnayeen\Themes\ThemesPlugin;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
@@ -33,7 +35,7 @@ class GuestPanelProvider extends PanelProvider
             ->discoverResources(in: app_path('Filament/Guest/Resources'), for: 'App\\Filament\\Guest\\Resources')
             ->discoverPages(in: app_path('Filament/Guest/Pages'), for: 'App\\Filament\\Guest\\Pages')
             ->pages([
-                DashboardQueue::class,
+                // PublicTransaction::class,
                 ])
             ->discoverWidgets(in: app_path('Filament/Guest/Widgets'), for: 'App\\Filament\\Guest\\Widgets')
             ->widgets([
@@ -53,6 +55,7 @@ class GuestPanelProvider extends PanelProvider
             ->authMiddleware([])
             ->navigation(false)
             ->topbar(false)
+            ->darkMode(false)
             ;
 
     }

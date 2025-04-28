@@ -1,4 +1,4 @@
-<div class="w-full text-gray-900 bg-gray-100 dark:bg-gray-900 dark:text-gray-100" wire:poll.5s="loadQueueData">
+<div class="w-full text-gray-900 bg-gray-100 dark:bg-gray-900 dark:text-gray-100" wire:poll.5s="handleQueueUpdate">
     <div class="grid h-screen gap-4 p-4 md:grid-cols-2 md:grid-rows-3">
 
         <!-- Tampilan Video (2 kolom, 2 baris) -->
@@ -12,86 +12,37 @@
         </iframe>
         </div>
 
- <!-- Tampilan Nomor Saat Ini -->
-<div class="flex flex-col justify-between col-span-1 row-span-2 p-6 bg-white shadow-2xl rounded-2xl dark:bg-gray-800">
-    <div class="text-center">
-        <h2 class="text-3xl font-extrabold tracking-wide text-gray-800 dark:text-white">
-            {{ $counterName }}
-        </h2>
-        <p class="mt-2 text-lg text-gray-500 dark:text-gray-300">
-            Sedang Dilayani
-        </p>
-    </div>
-
-    @if($currentTransaction)
-        <div class="flex flex-col items-center justify-center flex-grow mt-10">
-            <div class="text-[10rem] font-extrabold text-blue-600 dark:text-blue-400 drop-shadow-lg leading-none">
-                {{ $currentTransaction->queue->number }}
+        <!-- Tampilan Nomor Saat Ini -->
+        <div class="flex flex-col justify-between col-span-1 row-span-2 p-6 bg-white shadow-2xl rounded-2xl dark:bg-gray-800">
+            <div class="text-center">
+                <h2 class="text-3xl font-extrabold tracking-wide text-gray-800 dark:text-white">
+                    {{ $counterName }}
+                </h2>
+                <p class="mt-2 text-lg text-gray-500 dark:text-gray-300">
+                    Sedang Dilayani
+                </p>
             </div>
-            <div class="mt-8 text-[4rem] font-bold text-gray-700 dark:text-white tracking-wide text-center leading-tight">
-                {{ strtoupper($currentTransaction->customer->name) }}
-            </div>
-        </div>
-    @else
-        <div class="flex flex-col items-center justify-center flex-grow mt-8">
-            <p class="text-4xl text-gray-400 dark:text-gray-500">
-                Belum Ada Pelanggan
-            </p>
-        </div>
-    @endif
-</div>
 
-
-
-        <!-- Tampilan Daftar Antrian (2 kolom, 1 baris) -->
-        {{-- <div class="row-start-3 p-4 bg-white rounded-lg shadow-lg md:col-span-2 dark:bg-gray-800">
-            <div class="grid h-full grid-cols-2">
-                <!-- Antrian Menunggu -->
-                <div class="pr-4 border-r border-gray-200 dark:border-gray-700">
-                    <h3 class="mb-2 text-xl font-bold text-gray-800 dark:text-white">Antrian Menunggu</h3>
-                    <div class="grid grid-cols-2 gap-4">
-                        @forelse($queueList as $transaction)
-                            <div class="flex items-center p-3 rounded-lg bg-blue-50 dark:bg-blue-900">
-                                <div class="mr-4 text-3xl font-bold text-blue-600 dark:text-blue-300">
-                                    {{ $transaction->queue->number }}
-                                </div>
-                                <div class="truncate">
-                                    <div class="font-medium truncate">{{ $transaction->customer->name }}</div>
-                                </div>
-                            </div>
-                        @empty
-                            <div class="flex items-center justify-center col-span-2 py-6 text-gray-500 dark:text-gray-400">
-                                Tidak ada pelanggan menunggu
-                            </div>
-                        @endforelse
+            @if($currentTransaction)
+                <div class="flex flex-col items-center justify-center flex-grow mt-10">
+                    <div class="text-[10rem] font-extrabold text-blue-600 dark:text-blue-400 drop-shadow-lg leading-none">
+                        {{ $currentTransaction->queue->number }}
+                    </div>
+                    <div class="mt-8 text-[4rem] font-bold text-gray-700 dark:text-white tracking-wide text-center leading-tight">
+                        {{ strtoupper($currentTransaction->customer->name) }}
                     </div>
                 </div>
-
-                <!-- Antrian Selesai -->
-                <div class="pl-4">
-                    <h3 class="mb-2 text-xl font-bold text-gray-800 dark:text-white">Baru Saja Selesai</h3>
-                    <div class="grid grid-cols-2 gap-4">
-                        @forelse($completedList as $transaction)
-                            <div class="flex items-center p-3 rounded-lg bg-green-50 dark:bg-green-900">
-                                <div class="mr-4 text-3xl font-bold text-green-600 dark:text-green-300">
-                                    {{ $transaction->queue->number }}
-                                </div>
-                                <div class="truncate">
-                                    <div class="font-medium truncate">{{ $transaction->customer->name }}</div>
-                                    <div class="text-xs text-gray-500 dark:text-gray-300">
-                                        {{ $transaction->updated_at->format('h:i A') }}
-                                    </div>
-                                </div>
-                            </div>
-                        @empty
-                            <div class="flex items-center justify-center col-span-2 py-6 text-gray-500 dark:text-gray-400">
-                                Tidak ada transaksi selesai hari ini
-                            </div>
-                        @endforelse
-                    </div>
+            @else
+                <div class="flex flex-col items-center justify-center flex-grow mt-8">
+                    <p class="text-4xl text-gray-400 dark:text-gray-500">
+                        Belum Ada Pelanggan
+                    </p>
                 </div>
-            </div>
-        </div> --}}
+            @endif
+        </div>
+
+
+
         <div class="row-start-3 p-4 bg-white rounded-lg shadow-lg md:col-span-2 dark:bg-gray-800">
             <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
 
@@ -171,15 +122,27 @@
         </div>
 
     </div>
+    <audio id="notificationSound" src="{{ asset('storage/sounds/alert.mp3') }}" preload="auto"></audio>
 
-    <!-- Pusher untuk pembaruan real-time -->
-    {{-- <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            window.Echo.channel('queue-channel')
-                .listen('.queueUpdated', (event) => {
-                    console.log("📣 Event antrian diterima", event);
-                    window.Livewire.dispatch('queueUpdated', event.data);
+
+    {{-- PLay Alert --}}
+         <script>
+            document.addEventListener('livewire:load', function () {
+                Livewire.on('playAlert', () => {
+                    const sound = document.getElementById('notificationSound');
+                    if (sound) {
+                        sound.play();
+                    }
+
+                    const highlight = document.getElementById('currentNumber');
+                    if (highlight) {
+                        highlight.classList.add('animate-pulse');
+                        setTimeout(() => {
+                            highlight.classList.remove('animate-pulse');
+                        }, 3000);
+                    }
                 });
-        });
-    </script> --}}
+            });
+        </script>
+
 </div>

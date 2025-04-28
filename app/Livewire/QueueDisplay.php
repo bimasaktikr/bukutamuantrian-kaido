@@ -84,6 +84,7 @@ class QueueDisplay extends Component
             // Get the next transaction in queue
             $nextTransaction = Transaction::whereHas('queue')
                 ->where('status', 'queue')
+                ->where('date', now())
                 ->orderBy('created_at')
                 ->first();
 

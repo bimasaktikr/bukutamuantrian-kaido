@@ -40,6 +40,11 @@ class TransactionService
                 'date' => $data['date'],
             ]);
 
+            $submethod = Submethod::find($data['submethod_id']);
+
+            if ($submethod->method_id == 2) {
+                $queue = $this->queueService->createQueue($transaction);
+            }
             // Commit the transaction
             DB::commit();
         } catch (\Exception $e) {
@@ -52,15 +57,9 @@ class TransactionService
             throw $e;  // Optionally rethrow the exception if you want to handle it later
         }
 
+
         try {
-            //code...
-            $submethod = Submethod::find($data['submethod_id']);
-            // Handle queue creation if needed
-            if ($submethod->method_id == 2) {
-                $this->queueService->createQueue($transaction);
-            } else {
-                $this->sendTransactionMessage($transaction);
-            }
+            $this->sendTransactionMessage($transaction);
         } catch (\Exception $e) {
             // Log the error
             Log::error('Error Sending Message for Transaction: ' . $e->getMessage());

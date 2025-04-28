@@ -18,7 +18,7 @@ class PublicQueueDisplay extends Component
 
     protected $listeners = [
         'queueUpdated' => 'handleQueueUpdate',
-        'refreshQueue' => '$refresh'
+        'ublic' => '$refresh'
     ];
 
     public function mount()

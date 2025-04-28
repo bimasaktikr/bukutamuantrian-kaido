@@ -8,7 +8,7 @@ use App\Models\Institution;
 use App\Models\Purpose;
 use App\Models\Queue;
 use App\Models\Service;
-use App\Models\SubMethod;
+use App\Models\Submethod;
 use App\Models\Transaction;
 use App\Models\University;
 use App\Models\Work;
@@ -47,6 +47,7 @@ class PublicTransaction extends Page implements HasForms
     protected static ?string $navigationLabel = 'Pendaftaran Layanan';
 
     protected static ?string $slug = 'public';
+
 
     public function getTitle(): string
     {

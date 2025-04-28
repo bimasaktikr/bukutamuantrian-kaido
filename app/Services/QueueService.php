@@ -88,7 +88,15 @@ class QueueService
                 'transaction_id' => $transaction->id,
             ]);
 
-            // $this->sendQueueMessage($queue);
+
+            // return $queue; // Return the created queue
+            try {
+                $this->sendQueueMessage($queue);
+            } catch (\Exception $e) {
+                // Log the error
+                Log::error('Error Sending Message for Transaction: ' . $e->getMessage());
+                throw $e;
+            }
 
         } catch (\Exception $e) {
             // Rollback the transaction if queue creation fails
@@ -100,13 +108,6 @@ class QueueService
             throw $e;  // Optionally rethrow the exception
         }
 
-        try {
-            $this->sendQueueMessage($queue);
-        } catch (\Exception $e) {
-            // Log the error
-            Log::error('Error Sending Message for Queue: ' . $e->getMessage());
-            throw $e;
-        }
     }
 
     protected function sendQueueMessage($queue)
