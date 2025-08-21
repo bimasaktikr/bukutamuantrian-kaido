@@ -28,6 +28,9 @@ use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Jeffgreco13\FilamentBreezy\BreezyCore;
 use Rupadana\ApiService\ApiServicePlugin;
 
+use Filament\Navigation\NavigationGroup;
+
+
 use Laravel\Socialite\Contracts\User as SocialiteUserContract;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\Schema;
@@ -99,7 +102,23 @@ class AdminPanelProvider extends PanelProvider
             ->plugins(
                 $this->getPlugins()
             )
-            ->databaseNotifications();
+            ->databaseNotifications()
+            ->navigationGroups([
+                NavigationGroup::make('Transaction')
+                    ->label('Transaction')
+                    ->icon('heroicon-o-academic-cap')
+                    ->collapsed(),
+                NavigationGroup::make('Data')
+                    ->label('Data')
+                    ->icon('heroicon-o-academic-cap')
+                    ->collapsed(),
+                NavigationGroup::make('Settings')
+                    ->label('Settings')
+                    ->icon('heroicon-o-academic-cap')
+                    ->collapsed(),
+
+                ])
+            ;
     }
 
     private function getPlugins(): array

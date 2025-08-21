@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Whatsapp;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -26,41 +27,69 @@ class WhatsappService
      * @return array The response from the Node.js server.
      */
     // public function sendMessage($number, $message)
-    public function sendMessage(array $data)
+
+    protected function toChatId(string $number): string
     {
-        try {
+        // keep digits only
+        $n = preg_replace('/\D+/', '', $number ?? '');
 
-            // Mengambil data dari array
-            $number = $data['number'];
-            $message = $data['message'];
-            // Send HTTP POST request to Node.js server
-            $response = Http::withHeaders([
-                'x-api-key' => $this->APIKey,
-            ])->post("{$this->hostUrl}/send-message", [
-                'number' => $number,
-                'message' => $message,
-            ]);
-
-            Log::info ($response);
-            // Check if the request was successful
-            $responseBody = $response->body();
-            $decodedResponse = json_decode($responseBody, true);  // Decode to array
-
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                Log::error("JSON Decode Error: " . json_last_error_msg());
-                throw new \Exception('Failed to decode JSON response from Node.js');
-            }
-
-            if ($response->successful()) {
-                Log::info("Message sent successfully: " . json_encode($decodedResponse));
-                return $decodedResponse;
-            } else {
-                Log::error("Failed to send message: " . $responseBody);
-                return response()->json(['error' => 'Failed to send message', 'details' => $responseBody], 500);
-            }
-        } catch (\Exception $e) {
-            Log::error('Error sending WhatsApp message: ' . $e->getMessage());
-            throw new \Exception('Failed to send WhatsApp message');
+        // normalize to Indonesian MSISDN (adjust to your rules)
+        if (str_starts_with($n, '0')) {
+            $n = '62' . substr($n, 1);
+        } elseif (str_starts_with($n, '620')) {
+            $n = '62' . substr($n, 2);
+        } elseif (str_starts_with($n, '62')) {
+            // ok
+        } elseif (str_starts_with($n, '8')) {
+            $n = '62' . $n;
         }
+
+        return $n . '@c.us'; // for 1:1 chats; use '@g.us' for groups
     }
+
+    public function sendMessage(array $data)
+{
+    try {
+        $number  = $data['number']  ?? null;
+        $message = $data['message'] ?? null;
+        if (! $number || ! $message) {
+            throw new \InvalidArgumentException('number and message are required');
+        }
+
+        // session resolve
+        $settings = \App\Models\Whatsapp::latest()->first();
+        $session  = $settings?->session_name;
+
+        Log::info($session);
+
+        $payload = [
+            'chatId'  => $this->toChatId($number),
+            'text'    => $message,
+            'session' => $session,
+        ];
+
+        $url = rtrim(config('services.waha.host') ?? $this->hostUrl, '/') . '/api/sendText';
+
+        $response = \Illuminate\Support\Facades\Http::withHeaders([
+                'x-api-key' => config('services.waha.api_key') ?? $this->APIKey,
+            ])
+            ->acceptJson()
+            ->asJson()
+            ->post($url, $payload);
+
+        \Log::info('WAHA sendMessage response', [
+            'status'  => $response->status(),
+            'body'    => $response->json(),
+            'payload' => $payload,
+        ]);
+
+        $response->throw();
+
+        return $response->json();
+    } catch (\Throwable $e) {
+        \Log::error('WAHA sendMessage error: ' . $e->getMessage());
+        throw new \Exception('Failed to send WhatsApp message');
+    }
+}
+
 }
