@@ -19,8 +19,7 @@ class WorkResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
-    protected static ?string $navigationGroup = 'Data';
-
+    protected static ?string $navigationGroup = 'Master Data';
 
     protected static ?string $navigationLabel = 'Pekerjaan';
 

@@ -71,6 +71,9 @@ class TransactionService
         return $transaction;
     }
 
+
+
+
     protected function sendTransactionMessage($transaction)
     {
         $queueDate = now()->format('d M Y');

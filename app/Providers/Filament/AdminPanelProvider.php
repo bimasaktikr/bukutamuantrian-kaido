@@ -3,6 +3,7 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Pages\Login;
+use App\Filament\Pages\TransactionReport;
 use App\Settings\KaidoSetting;
 use Filament\Http\Middleware\Authenticate;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
@@ -69,6 +70,7 @@ class AdminPanelProvider extends PanelProvider
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([
                 Pages\Dashboard::class,
+                TransactionReport::class,
             ])
             ->navigationGroups([
                 'Dashboard',       // 1st group
@@ -104,17 +106,33 @@ class AdminPanelProvider extends PanelProvider
             )
             ->databaseNotifications()
             ->navigationGroups([
-                NavigationGroup::make('Transaction')
-                    ->label('Transaction')
-                    ->icon('heroicon-o-academic-cap')
+                NavigationGroup::make('Transaksi')
+                    ->label('Transaksi')
+                    ->icon('heroicon-o-numbered-list')
                     ->collapsed(),
-                NavigationGroup::make('Data')
-                    ->label('Data')
-                    ->icon('heroicon-o-academic-cap')
+                NavigationGroup::make('Master Data')
+                    ->label('Master Data')
+                    ->icon('heroicon-o-server-stack')
                     ->collapsed(),
-                NavigationGroup::make('Settings')
-                    ->label('Settings')
-                    ->icon('heroicon-o-academic-cap')
+                NavigationGroup::make('Layanan')
+                    ->label('Layanan')
+                    ->icon('heroicon-o-shopping-cart')
+                    ->collapsed(),
+                NavigationGroup::make('Pengaturan')
+                    ->label('Pengaturan')
+                    ->icon('heroicon-o-wrench-screwdriver')
+                    ->collapsed(),
+                NavigationGroup::make('User')
+                    ->label('User')
+                    ->icon('heroicon-o-users')
+                    ->collapsed(),
+                NavigationGroup::make('Filament Shield')
+                    ->label('Filament Shield')
+                    ->icon('heroicon-o-shield-check')
+                    ->collapsed(),
+                NavigationGroup::make('Whatsapp')
+                    ->label('Whatsapp')
+                    ->icon('heroicon-o-server')
                     ->collapsed(),
 
                 ])

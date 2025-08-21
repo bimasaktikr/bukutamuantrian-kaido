@@ -14,11 +14,11 @@ use Filament\Pages\SettingsPage;
 class ManageSetting extends SettingsPage
 {
     use HasPageShield;
-    protected static ?string $navigationIcon = 'heroicon-o-cog-6-tooth';
+    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     protected static string $settings = KaidoSetting::class;
 
-    protected static ?string $navigationGroup = 'Settings';
+    protected static ?string $navigationGroup = 'Pengaturan';
 
     public function form(Form $form): Form
     {

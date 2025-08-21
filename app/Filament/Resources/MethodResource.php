@@ -21,7 +21,7 @@ class MethodResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
-    protected static ?string $navigationGroup = 'Data';
+    protected static ?string $navigationGroup = 'Layanan';
 
     protected static ?string $navigationLabel = 'Metode Transaksi';
 
