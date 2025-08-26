@@ -220,52 +220,73 @@ class PublicTransaction extends Page implements HasForms
                                 ->searchable(), // Allows searching through the institution list
                         ]),
                         Wizard\Step::make('Layanan')
-                            ->schema(fn (Get $get, Set $set) => [
-                                 // Selalu ada (sumber layanan: WhatsApp, Datang Langsung, dst)
+                        ->schema(fn (Get $get, Set $set) => [
+
+                            // Flow selector
+                            Select::make('flow')
+                                ->label('Jenis Layanan')
+                                ->options([
+                                    'data'    => 'Layanan Data',
+                                    'nondata' => 'Bukan Layanan Data',
+                                ])
+                                ->required()
+                                ->native(false)
+                                ->live(),
+
+                            // === Flow A: Data ===
+                            ...($get('flow') === 'data' ? [
                                 Select::make('submethod_id')
                                     ->label('Pilih Media Layanan')
-                                    ->options(\App\Models\Submethod::pluck('name', 'id'))
+                                    ->options(Submethod::pluck('name', 'id'))
                                     ->required()
                                     ->native(false),
 
-                                // Pilih jenis flow
-                                Select::make('flow')
-                                    ->label('Jenis Layanan')
-                                    ->options([
-                                        'data'    => 'Layanan Data',
-                                        'nondata' => 'Bukan Layanan Data',
-                                    ])
-                                    ->default('data')
-                                    ->required()
-                                    ->live()
-                                    ->native(false),
-
-                                // SATU field saja utk layanan, opsi berubah sesuai flow
-                                Select::make('service_id')
-                                    ->label(fn () => 'Pilih Layanan' . ($get('flow') === 'nondata' ? ' (Non-Data)' : ''))
-                                    ->options(function () use ($get) {
-                                        $type = $get('flow') === 'nondata' ? 'nondata' : 'data';
-                                        return \App\Models\Service::query()
-                                            ->whereRaw('LOWER(service_type) = ?', [strtolower($type)])  // tahan variasi kapitalisasi
-                                            ->orderBy('name')
-                                            ->pluck('name', 'id');
-                                    })
-                                    ->required()
-                                    ->live()
-                                    ->preload()
-                                    ->searchable()
-                                    ->native(false),
-
-                                // Khusus flow data → tampil & required
                                 Select::make('purpose_id')
                                     ->label('Tujuan Penggunaan')
-                                    ->options(\App\Models\Purpose::pluck('name', 'id'))
-                                    ->required(fn () => $get('flow') === 'data')
-                                    ->hidden(fn () => $get('flow') !== 'data')
+                                    ->options(Purpose::pluck('name', 'id'))
+                                    ->required()
                                     ->native(false),
 
+                                Select::make('service_id')
+                                    ->label('Pilih Layanan Data')
+                                    ->options(Service::pluck('name', 'id'))
+                                    ->required()
+                                    ->native(false),
+                            ] : []),
 
-                            ])
+                            // === Flow B: Non-Data ===
+                            ...($get('flow') === 'nondata' ? [
+                                Select::make('nondata_type')
+                                    ->label('Kategori Non-Data')
+                                    ->options([
+                                        'magang' => 'Magang',
+                                        'meet'   => 'Bertemu Seseorang',
+                                    ])
+                                    ->required()
+                                    ->native(false)
+                                    ->live()
+                                    ->afterStateUpdated(function ($state) use ($set) {
+                                        // Map type -> service_id (by slug/name/etc.)
+                                        $map = [
+                                            'magang' => Service::where('name', 'Magang')->value('id'),
+                                            'meet'   => Service::where('name', 'Bertemu Pegawai')->value('id'),
+                                        ];
+                                        $set('service_id', $map[$state] ?? null);
+                                    }),
+
+                                // keep service_id in form state but hidden
+                                Select::make('service_id')
+                                    ->label('Layanan Non-Data')
+                                    ->hidden() // don’t show, it’s auto-set
+                                    ->required(),
+
+                                Select::make('employee_id')
+                                    ->label('Pilih Pegawai (opsional)')
+                                    ->options([]) // fill with employee list later
+                                    ->hidden(fn (Get $get) => $get('nondata_type') !== 'meet')
+                                    ->native(false),
+                            ] : []),
+                        ])
 
                 ])->submitAction(new HtmlString('<button class="bg-yellow-200" type="submit">Submit</button>')),
             ]);
@@ -293,83 +314,83 @@ class PublicTransaction extends Page implements HasForms
 
     public function submit()
     {
+        // Start a database transaction to ensure all operations succeed or none
         DB::beginTransaction();
 
         try {
-            // Ambil semua state sekali saja
-            $state = $this->form->getState();
+            // Save customer data inside a try-catch block
+            try {
+                // Get the data from the form
+                // $email = $this->form->getState()['email'];
+                // $phone =$this->form->getState()['phone'];
 
-            /**
-             * 1) VALIDASI MINIMAL (server-side) sesuai flow
-             */
-            $baseRules = [
-                'email'        => ['required','email'],
-                'phone'        => ['required'],
-                'name'         => ['required'],
-                'age'          => ['required','integer'],
-                'gender'       => ['required'],
-                'work_id'      => ['required'],
-                'education_id' => ['required'],
+                $data = [
+                    'email' => $this->form->getState()['email'],
+                    'phone' => $this->form->getState()['phone'],
+                    'name' => $this->form->getState()['name'],
+                    'age' => $this->form->getState()['age'],
+                    'gender' => $this->form->getState()['gender'],
+                    'work_id' => $this->form->getState()['work_id'],
+                    'education_id' => $this->form->getState()['education_id'],
+                    'university_id' => $this->form->getState()['university_id'] ?? null,
+                    'institution_id' => $this->form->getState()['institution_id'] ?? null,
+                ];
 
-                'submethod_id' => ['required','exists:submethods,id'], // ⬅️ always required
-                'service_id'   => ['required','exists:services,id'],    // written by either select
-                'flow'         => ['required','in:data,nondata'],
-            ];
+                Log::info('Customer debug info', [
+                    'data' => $data,
+                ]);
 
-            $dataRules = [
-                'purpose_id'   => ['required','exists:purposes,id'],
-            ];
 
-            $rules = $baseRules;
-            if (($state['flow'] ?? null) === 'data') {
-                $rules = array_merge($rules, $dataRules);
+                // Using the CustomerService to create or update the customer
+                $customerService = app(CustomerService::class);
+
+                // Call the service method to handle customer creation
+                $this->customer = $customerService->createOrGet($data);
+            } catch (\Exception $e) {
+                // Rollback the transaction
+                DB::rollBack();
+                // Log error and return user-friendly message
+                Log::error('Error saving customer: ' . $e->getMessage());
+                return $this->notifyError('An error occurred while saving customer data.');
             }
 
-            validator($state, $rules)->validate();
+            // Save transaction data
+            try {
+                $transactionService = app(TransactionService::class);
+                // Collect form data
+                $data = [
+                    'date' => Carbon::today(),
+                    'customer_id' => $this->customer->id,
+                    'service_id' => $this->form->getState()['service_id'],
+                    'purpose_id' => $this->form->getState()['purpose_id'],
+                    'submethod_id' => $this->form->getState()['submethod_id'],
+                ];
 
-            /**
-             * 2) SIMPAN / DAPATKAN CUSTOMER
-             */
-            $customerPayload = [
-                'email'          => $state['email'],
-                'phone'          => $state['phone'],
-                'name'           => $state['name'],
-                'age'            => $state['age'],
-                'gender'         => $state['gender'],
-                'work_id'        => $state['work_id'],
-                'education_id'   => $state['education_id'],
-                'university_id'  => $state['university_id']  ?? null,
-                'institution_id' => $state['institution_id'] ?? null,
-            ];
+                Log::info('Transaction debug info', [
+                    'data' => $data,
+                ]);
 
-            Log::info('Customer debug info', ['data' => $customerPayload]);
+                $this->transaction = $transactionService->createTransaction($data);
+                // Handle queue creation for specific services
 
-            $customerService = app(\App\Services\CustomerService::class);
-            $this->customer  = $customerService->createOrGet($customerPayload);
+            } catch (\Exception $e) {
+                // Rollback the transaction
+                DB::rollBack();
 
-            // dd($state['flow']);
-            /**
-             * 3) SIMPAN TRANSAKSI
-             *    - Selalu simpan service_id
-             *    - Untuk flow nondata: purpose_id & submethod_id = null
-             */
-            $transactionPayload = [
-                'date'          => Carbon::today(),
-                'customer_id'   => $this->customer->id,
-                'service_id'    => $state['service_id'],
-                'submethod_id'  => $state['submethod_id'],
-                'category'      => $state['flow'],
-                'purpose_id'    => ($state['flow'] === 'data') ? ($state['purpose_id'] ?? null) : null,
-            ];
+                // Log error and return user-friendly message
+                Log::error('Error saving transaction: ' . $e->getMessage());
 
+                // Notify the user with an error message
+                Notification::make()
+                    ->danger()
+                    ->title('Error')
+                    ->body('An error occurred while saving transaction data :' . $e->getMessage())
+                    ->send();
 
-            // dd($transactionPayload);
+                return;
+            }
 
-            Log::info('Transaction debug info', ['data' => $transactionPayload]);
-
-            $transactionService = app(\App\Services\TransactionService::class);
-            $this->transaction  = $transactionService->createTransaction($transactionPayload);
-
+            // Commit the transaction since everything is successful
             DB::commit();
 
             Notification::make()
@@ -378,33 +399,35 @@ class PublicTransaction extends Page implements HasForms
                 ->body('Data saved successfully')
                 ->send();
 
-            /**
-             * 4) UI setelah simpan:
-             *    - Tampilkan modal antrian jika transaksi punya queue (lebih aman),
-             *      atau jika submethod method_id == 2 (flow data).
-             */
-            if ($this->transaction->relationLoaded('queue') ? $this->transaction->queue : $this->transaction->queue()->exists()) {
+            // $this->showQueueModal = true;
+            if ($this->transaction->submethod->method_id == 2) {
+                // Show the queue modal
                 $this->showQueueModal = true;
                 $this->dispatch('showQueueModal', $this->transaction->id);
             } else {
+                // Redirect to the public page
                 return redirect()->route('filament.guest.pages.public');
             }
+            $this->dispatch('showQueueModal', $this->transaction->id);
 
-        } catch (\Throwable $e) {
+
+            // return redirect()->route('filament.guest.pages.public');
+        } catch (\Exception $e) {
+            // Rollback in case of any unforeseen errors
             DB::rollBack();
 
-            Log::error('Error saving public transaction', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
+            // Log the error
+            Log::error('Unexpected error: ' . $e->getMessage());
 
+            // Display a notification to the user
             Notification::make()
                 ->danger()
-                ->title('Error')
-                ->body('An error occurred: '.$e->getMessage())
+                ->title('Unexpected Error')
+                ->body('An unexpected error occurred. Please try again.')
                 ->send();
+
+            return;
         }
     }
-
 
 }

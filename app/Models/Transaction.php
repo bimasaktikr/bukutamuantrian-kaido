@@ -18,6 +18,9 @@ class Transaction extends Model
         'purpose_id',
         'status',
         'date',
+        'category',
+        'nondata_type',
+        'employee_id',
     ];
     // add guaded
     protected $guarded = ['id'];

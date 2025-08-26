@@ -49,6 +49,7 @@ class TransactionService
                 'service_id' => $data['service_id'],
                 'purpose_id' => $data['purpose_id'],
                 'submethod_id' => $data['submethod_id'],
+                'category' => $data['category'],
                 'date' => $data['date'],
             ]);
 
