@@ -88,4 +88,6 @@ return [
         'enabled' => true,
     ],
 
+    'panels' => ['admin'],
+
 ];

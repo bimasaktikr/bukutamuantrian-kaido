@@ -1,0 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+/* @tailwind variants; */
+/* Filament v3 core */
+@import "/vendor/filament/support/dist/index.css";
+@import "/vendor/filament/forms/dist/module.esm.css";

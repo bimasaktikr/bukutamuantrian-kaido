@@ -21,6 +21,9 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use App\Filament\Guest\Pages\PublicFeedback;
+use Illuminate\Routing\Router;
+use Illuminate\Support\Facades\Route;
 
 class GuestPanelProvider extends PanelProvider
 {
@@ -36,7 +39,13 @@ class GuestPanelProvider extends PanelProvider
             ->discoverPages(in: app_path('Filament/Guest/Pages'), for: 'App\\Filament\\Guest\\Pages')
             ->pages([
                 // PublicTransaction::class,
-                ])
+                // PublicFeedback::route('/f/{uuid}'),   // ✅ dynamic param here
+            ])
+            // ->viteTheme('resources\css\filament\guest\theme.css')
+            ->routes(function (Panel $panel) {   // ✅ accept Panel, not Router
+                Route::get('/f/{uuid}', PublicFeedback::class)
+                    ->name('filament.' . $panel->getId() . '.feedback.public'); // => filament.guest.feedback.public
+            })
             ->discoverWidgets(in: app_path('Filament/Guest/Widgets'), for: 'App\\Filament\\Guest\\Widgets')
             ->widgets([
                 Widgets\FilamentInfoWidget::class,

@@ -30,6 +30,12 @@ class TransactionReport extends Page implements HasTable
     protected static ?string $slug            = 'report-transactions';
     protected static string  $view            = 'filament.pages.transaction-report';
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        return auth()->check() && auth()->user()->hasAnyRole(['super_admin','ketua tim']);
+    }
+
+
     public static function canAccess(): bool
     {
         return auth()->check() && auth()->user()->hasAnyRole(['super_admin','ketua tim']);

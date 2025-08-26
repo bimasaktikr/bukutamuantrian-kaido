@@ -48,9 +48,10 @@ class Transaction extends Model
     {
         return $this->hasOne(Queue::class);
     }
-    // public function queue(): BelongsTo
-    // {
-    //     return $this->belongsTo(Queue::class);
-    // }
+
+    public function feedback()
+    {
+        return $this->hasOne(Feedback::class);
+    }
 
 }

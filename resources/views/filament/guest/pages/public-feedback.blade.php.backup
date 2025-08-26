@@ -1,0 +1,145 @@
+<x-filament::page>
+    @php $serviceName = optional($this->feedback?->transaction?->service)->name; @endphp
+
+    <div class="min-h-[80vh] bg-white flex flex-col">
+        <div class="px-4 pt-8 pb-4 mx-auto w-full max-w-md">
+            <div class="space-y-3 text-center">
+                <div class="grid place-items-center mx-auto w-14 h-14 bg-orange-100 rounded-full">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24"
+                         class="w-8 h-8 text-orange-500">
+                        <path d="M2 5.75A2.75 2.75 0 0 1 4.75 3h10.5A2.75 2.75 0 0 1 18 5.75v6.5A2.75 2.75 0 0 1 15.25 15H9l-3.5 3.5A1 1 0 0 1 4 17.5V15A2.75 2.75 0 0 1 2 12.25v-6.5Z"/>
+                        <path d="M20 8.25v7.5A2.25 2.25 0 0 1 17.75 18H14l-3 3v-3H9.75A2.25 2.25 0 0 1 7.5 15.75v-.7h6.75A4.25 4.25 0 0 0 18.5 10.8V8.25A2.25 2.25 0 0 1 20 8.25Z"/>
+                    </svg>
+                </div>
+
+                <h1 class="text-lg font-semibold text-center">
+                    Terima kasih Anda telah menggunakan layanan
+                    <span class="whitespace-nowrap">{{ $serviceName ?? 'BPS Kota Malang' }}</span>
+                </h1>
+            </div>
+
+            {{-- @if ($this->submitted) --}}
+            @if ($feedback->submited)
+
+                <div class="p-4 mt-8 text-center bg-green-50 rounded-xl border border-green-200">
+                    <p class="font-semibold text-green-700">Feedback sudah diterima. Terima kasih! 🙏</p>
+                </div>
+            @else
+                {{-- <form
+                    wire:submit.prevent="save"
+                    x-data="{
+                        rate: @entangle('data.rate').defer,
+                        comment: @entangle('data.comment').defer,
+                        hovering: 0
+                    }"
+                    class="mt-8 space-y-8"
+                > --}}
+
+                <form
+                    wire:submit.prevent="save"
+                    x-data="{
+                        rate: @entangle('formData.rate').defer,
+                        comment: @entangle('formData.comment').defer,
+                        hovering: 0
+                    }"
+                    class="mt-8 space-y-8"
+                >
+                    <div class="text-center">
+                        <p class="font-semibold text-blue-700">Berikan Penilaian</p>
+
+                        {{-- <div
+                            class="flex gap-3 justify-center items-center mt-3 select-none"
+                            x-data="{
+                                value: @entangle('data.rate').defer || 0,
+                                hover: 0,
+                                isH(i){ return this.hover >= i },
+                                isA(i){ return this.value >= i },
+                                set(n){ this.value = n }
+                            }"
+                            role="radiogroup"
+                            aria-label="Berikan penilaian"
+                        > --}}
+                        <div
+                            class="flex gap-3 justify-center items-center mt-3 select-none"
+                            x-data="{
+                                value: @entangle('formData.rate').defer || 0,
+                                hover: 0,
+                                isH(i){ return this.hover >= i },
+                                isA(i){ return this.value >= i },
+                                set(n){ this.value = n }
+                            }"
+                            role="radiogroup"
+                            aria-label="Berikan penilaian"
+                        >
+                            <template x-for="i in 5" :key="i">
+                                <button
+                                    type="button"
+                                    class="relative w-11 h-11 rounded-full outline-none focus:ring-2 focus:ring-blue-600/40"
+                                    role="radio"
+                                    :aria-checked="value === i"
+                                    @click="set(i)"
+                                    @mouseenter="hover = i" @mouseleave="hover = 0"
+                                    @keydown.arrow-right.prevent="set(Math.min(5, (value||0)+1))"
+                                    @keydown.arrow-left.prevent="set(Math.max(1, (value||0)-1))"
+                                >
+                                    {{-- fill layer --}}
+                                    <svg viewBox="0 0 24 24"
+                                         class="absolute inset-0 m-auto w-11 h-11 transition-transform duration-150"
+                                         :class="isH(i)
+                                            ? 'text-yellow-400 scale-110 drop-shadow-[0_2px_8px_rgba(234,179,8,0.55)]'
+                                            : (isA(i)
+                                                ? 'text-yellow-500 scale-105 drop-shadow-[0_2px_8px_rgba(234,179,8,0.45)]'
+                                                : 'text-transparent scale-100')">
+                                        <polygon fill="currentColor"
+                                                 points="12,2.4 14.65,7.83 20.6,8.69 16.3,12.86 17.32,18.74 12,15.96 6.68,18.74 7.7,12.86 3.4,8.69 9.35,7.83 "></polygon>
+                                    </svg>
+                                    {{-- outline layer --}}
+                                    <svg viewBox="0 0 24 24" class="absolute inset-0 m-auto w-11 h-11">
+                                        <polygon
+                                            :class="(isH(i) || isA(i)) ? 'text-yellow-500' : 'text-gray-300'"
+                                            fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"
+                                            points="12,2.8 14.34,7.55 19.6,8.3 15.8,11.98 16.66,17.2 12,14.84 7.34,17.2 8.2,11.98 4.4,8.3 9.66,7.55 "></polygon>
+                                    </svg>
+                                    <span class="sr-only" x-text="i + ' bintang'"></span>
+                                </button>
+                            </template>
+                        </div>
+
+                        @error('formData.rate')
+                            <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <p class="font-semibold text-center text-blue-700">Punya Masukan atau Saran?</p>
+                        <div class="relative mt-3">
+                            <textarea
+                                x-model="comment"
+                                maxlength="255"
+                                placeholder="Ketik di sini..."
+                                class="w-full min-h-[120px] rounded-2xl border border-gray-300 focus:border-blue-600 focus:ring-blue-600 p-4"
+                            ></textarea>
+                            <div class="absolute bottom-2 right-3 text-xs text-gray-500">
+                                <span x-text="(comment?.length || 0)"></span>/255
+                            </div>
+                        </div>
+                        @error('formData.comment')
+                            <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <button
+                        type="submit"
+                        class="py-4 w-full font-semibold text-white bg-blue-600 rounded-full shadow-md disabled:opacity-60"
+                        wire:loading.attr="disabled"
+                    >
+                        <span wire:loading.remove>Kirim</span>
+                        <span wire:loading>Memproses…</span>
+                    </button>
+                </form>
+            @endif
+        </div>
+
+        <div class="flex-1"></div>
+    </div>
+</x-filament::page>

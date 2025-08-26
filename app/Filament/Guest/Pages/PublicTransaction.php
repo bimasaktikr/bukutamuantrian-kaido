@@ -62,6 +62,7 @@ class PublicTransaction extends Page implements HasForms
      */
     protected $customerService;
     protected $queueService;
+    protected $transactionService;
 
     public $name;
     public $phone;

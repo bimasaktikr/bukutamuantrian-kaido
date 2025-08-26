@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Outbox;
 use App\Models\Queue;
 use App\Models\Service;
 use Carbon\Carbon;
@@ -69,69 +70,104 @@ class QueueService
         // return $prefix . $nextQueueNumber;
     }
 
-    // Method to handle queue creation if needed
-    public function createQueue($transaction)
+    public function createQueue($transaction): Queue
     {
-        try {
-            // Get the last queue number or default to 1
-            $queueNumber = $this->getLastQueue() ?? 1;
+        // 1) Persist queue + outbox atomically
+        [$queue, $outbox] = DB::transaction(function () use ($transaction) {
+            $queueNumber = $this->getLastQueue();
 
-            // Validate that the queue number is not null
-            if (empty($queueNumber)) {
-                throw new \Exception('Queue number generation failed.');
-            }
-
-            // Create the queue
             $queue = Queue::create([
-                // 'date' => Carbon::today(),
-                'number' => $queueNumber,
+                'number'         => $queueNumber,
                 'transaction_id' => $transaction->id,
             ]);
 
+            // prepare WA message text
+            $payload = $this->buildQueueMessage($queue);
 
-            // return $queue; // Return the created queue
-            try {
-                $this->sendQueueMessage($queue);
-            } catch (\Exception $e) {
-                // Log the error
-                Log::error('Error Sending Message for Transaction: ' . $e->getMessage());
-                throw $e;
-            }
+            // create outbox entry in "pending"
+            $outbox = Outbox::create([
+                'to'           => $queue->transaction->customer->phone,
+                'message'      => $payload,
+                'status'       => 'pending',
+                'related_type' => get_class($queue),
+                'related_id'   => $queue->id,
+            ]);
 
-        } catch (\Exception $e) {
-            // Rollback the transaction if queue creation fails
-            DB::rollBack();
+            return [$queue, $outbox];
+        });
 
-            // Log error and notify user
-            Log::error('Error creating queue: ' . $e->getMessage());
+        // 2) Send WA in a separate try/catch (no DB rollback on failure)
+        try {
+            $response = $this->whatsappService->sendMessage([
+                'number'  => $outbox->to,
+                'message' => $outbox->message,
+            ]);
 
-            throw $e;  // Optionally rethrow the exception
+            // normalize response
+            $code = is_array($response) && isset($response['status']) ? (int) $response['status'] : 200;
+
+            $outbox->update([
+                'status'        => 'sent',
+                'response_code' => $code,
+                'response_body' => is_array($response) ? json_encode($response) : (string) $response,
+                'sent_at'       => now(),
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('WA send failed for queue '.$queue->id.' : '.$e->getMessage());
+
+            $outbox->update([
+                'status'        => 'failed',
+                'response_code' => 0,
+                'error'         => $e->getMessage(),
+            ]);
+            // DO NOT throw; we want queue to remain saved
         }
 
+        return $queue;
     }
 
-    protected function sendQueueMessage($queue)
+    /** Build the WhatsApp message text for a queue. */
+    protected function buildQueueMessage(Queue $queue): string
     {
-        $queueDate = now()->format('d M Y');
-        $customerName = $queue -> transaction->customer->name;
-        $serviceName = $queue -> transaction->service->name;
-        $queueNumberFormatted = str_pad($queue->number, 3, '0', STR_PAD_LEFT);
-        $prefix = Service::find($queue->transaction->service_id)->code ?? '';
-        $layananChoosed = $queue->transaction->layanan_choosed; // Assuming `layanan_choosed` is available
+        $queueDate           = now()->format('d M Y');
+        $customerName        = $queue->transaction->customer->name;
+        $serviceName         = $queue->transaction->service->name;
+        $queueNumberFormatted= str_pad($queue->number, 3, '0', STR_PAD_LEFT);
+        $prefix              = Service::find($queue->transaction->service_id)->code ?? '';
+        $layananChoosed      = $queue->transaction->submethod->name ?? '';
 
-        // Send WhatsApp message
-        $this->whatsappService->sendMessage([
-            'number' => $queue->transaction->customer->phone, // Send to the customer's phone
-            'message' => "Halo, Sahabat Data!\n\n" .
-                "Terima kasih telah menggunakan layanan kami, berikut adalah detail antrian Anda:\n" .
-                "Nama: {$customerName}\n" .
-                "Nomor Antrian: {$prefix}-{$queueNumberFormatted}\n" .
-                "Layanan yang Dibutuhkan: {$serviceName}\n" .
-                "Media Layanan yang digunakan: {$layananChoosed}\n" .
-                "Tanggal pelayanan: {$queueDate}\n\n" .
-                "Tunjukkan pesan ini kepada petugas pelayanan saat anda datang ke PST BPS Kota Malang.",
-        ]);
+        return "Halo, Sahabat Data!\n\n"
+            ."Terima kasih telah menggunakan layanan kami, berikut adalah detail antrian Anda:\n"
+            ."Nama: {$customerName}\n"
+            ."Nomor Antrian: {$prefix}-{$queueNumberFormatted}\n"
+            ."Layanan yang Dibutuhkan: {$serviceName}\n"
+            ."Media Layanan yang digunakan: {$layananChoosed}\n"
+            ."Tanggal pelayanan: {$queueDate}\n\n"
+            ."Tunjukkan pesan ini kepada petugas pelayanan saat anda datang ke PST BPS Kota Malang.";
     }
+
+    // protected function sendQueueMessage($queue)
+    // {
+    //     $queueDate = now()->format('d M Y');
+    //     $customerName = $queue -> transaction->customer->name;
+    //     $serviceName = $queue -> transaction->service->name;
+    //     $queueNumberFormatted = str_pad($queue->number, 3, '0', STR_PAD_LEFT);
+    //     $prefix = Service::find($queue->transaction->service_id)->code ?? '';
+    //     $layananChoosed = $queue->transaction->layanan_choosed; // Assuming `layanan_choosed` is available
+
+    //     // Send WhatsApp message
+    //     $this->whatsappService->sendMessage([
+    //         'number' => $queue->transaction->customer->phone, // Send to the customer's phone
+    //         'message' => "Halo, Sahabat Data!\n\n" .
+    //             "Terima kasih telah menggunakan layanan kami, berikut adalah detail antrian Anda:\n" .
+    //             "Nama: {$customerName}\n" .
+    //             "Nomor Antrian: {$prefix}-{$queueNumberFormatted}\n" .
+    //             "Layanan yang Dibutuhkan: {$serviceName}\n" .
+    //             "Media Layanan yang digunakan: {$layananChoosed}\n" .
+    //             "Tanggal pelayanan: {$queueDate}\n\n" .
+    //             "Tunjukkan pesan ini kepada petugas pelayanan saat anda datang ke PST BPS Kota Malang.",
+    //     ]);
+    // }
 
 }
 
