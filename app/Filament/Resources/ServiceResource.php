@@ -37,6 +37,12 @@ class ServiceResource extends Resource
                 TextInput::make('code')
                     ->required()
                     ->maxLength(255),
+                Forms\Components\Select::make('service_type')
+                    ->required()
+                    ->options([
+                        'data' => 'Data',
+                        'nondata' => 'Nondata',
+                    ]),
             ]);
     }
 

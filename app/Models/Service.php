@@ -10,7 +10,7 @@ class Service extends Model
 
     // add fillable
     protected $fillable = [
-        'name', 'code'
+        'name', 'code', "service_type"
     ];
     // add guaded
     protected $guarded = ['id'];
