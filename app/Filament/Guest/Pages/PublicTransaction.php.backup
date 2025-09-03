@@ -386,7 +386,7 @@ class PublicTransaction extends Page implements HasForms
                     ->title('Error')
                     ->body('An error occurred while saving transaction data :' . $e->getMessage())
                     ->send();
-
+ 
                 return;
             }
 

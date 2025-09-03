@@ -159,7 +159,10 @@ class TransactionService
         }
 
         // 3) Build message + link
-        $url     = $this->feedbackService->publicUrl($feedback);
+        // $url     = $this->feedbackService->publicUrl($feedback);
+        // $url = \App\Filament\Guest\Pages\PublicFeedback::getUrl(['uuid' => $fb->uuid], panel: 'guest');
+
+        $url     = route('filament.guest.feedback.public', ['uuid' => $feedback->uuid]);
         $message = $this->buildFeedbackRequestMessage($tx, $url);
         $to      = $tx->customer->phone ?? null;
 
@@ -216,8 +219,10 @@ class TransactionService
 
 
     /** WhatsApp text when asking for feedback after completion */
-    protected function buildFeedbackRequestMessage(Transaction $tx, string $url): string
+    public function buildFeedbackRequestMessage(Transaction $tx, string $url): string
     {
+
+
         $name    = $tx->customer->name ?? 'Pelanggan';
         $service = $tx->service->name ?? '';
         $date    = now()->format('d M Y');

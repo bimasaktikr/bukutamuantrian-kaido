@@ -5,10 +5,13 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\TransactionResource\Pages;
 use App\Filament\Resources\TransactionResource\RelationManagers;
 use App\Models\Transaction;
+use App\Filament\Guest\Pages\PublicFeedback;
+use App\Services\TransactionService;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Actions\Action;
@@ -202,22 +205,26 @@ class TransactionResource extends Resource
                 //         ->body(route('public.feedback.show', $record->feedback->uuid))
                 //         ->success()
                 //         ->send()),
-                // Action::make('sendFeedbackLink')
-                //     ->label('Send Feedback Link')
-                //     ->icon('heroicon-o-paper-airplane')
-                //     ->requiresConfirmation()
-                //     ->visible(fn ($record) => filled($record->feedback))
-                //     ->action(function ($record) {
-                //         $url = route('public.feedback.show', $record->feedback->uuid);
-                //         app(\App\Services\WhatsappService::class)->sendMessage([
-                //             'number'  => $record->customer->phone,
-                //             'message' => "Mohon bantu nilai layanan kami: {$url}",
-                //         ]);
-                //         \Filament\Notifications\Notification::make()
-                //             ->title('Link sent via WhatsApp')
-                //             ->success()
-                //             ->send();
-                //     }),
+                Action::make('sendFeedbackLink')
+                    ->label('Send Feedback Link')
+                    ->icon('heroicon-o-paper-airplane')
+                    ->requiresConfirmation()
+                    ->visible(fn ($record) => filled($record->feedback))
+                    ->action(function ($record) {
+                        // $url = route('filament.guest.feedback.public', $record->feedback->uuid);
+                        // $url = route('filament.guest.feedback.public', ['uuid' => $record->feedback->uuid]);
+                        $url = PublicFeedback::getUrl(['uuid' => $record->feedback->uuid], panel: 'guest');
+
+
+                        app(\App\Services\WhatsappService::class)->sendMessage([
+                            'number'  => $record->customer->phone,
+                            'message' => app(\App\Services\TransactionService::class)->buildFeedbackRequestMessage($record, $url),
+                        ]);
+                        Notification::make()
+                            ->title('Link sent via WhatsApp')
+                            ->success()
+                            ->send();
+                    }),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
 

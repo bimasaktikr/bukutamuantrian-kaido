@@ -12,9 +12,14 @@ class PublicFeedback extends Page implements Forms\Contracts\HasForms
 {
     use Forms\Concerns\InteractsWithForms;
 
+
     protected static string $view = 'filament.guest.pages.public-feedback';
 
     protected static bool $shouldRegisterNavigation = false;
+
+    protected static ?string $slug = 'f/{uuid}';          // short link
+
+    protected static ?string $routeName = 'feedback.public'; // becomes filament.guest.feedback.public
 
     public ?Feedback $feedback = null;
      /** Holds rate & comment bound from the Blade via @entangle */
@@ -38,6 +43,8 @@ class PublicFeedback extends Page implements Forms\Contracts\HasForms
 
     public function mount(string $uuid): void
     {
+        // $uuid = request()->query('uuid');
+
         $this->feedback = Feedback::where('uuid', $uuid)->firstOrFail();
 
         $this->submitted = (bool) $this->feedback->submited;

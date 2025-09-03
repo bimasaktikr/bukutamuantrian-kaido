@@ -20,11 +20,11 @@ class FeedbackService
 
     public function publicUrl(\App\Models\Feedback $fb): string
     {
+        // return route('filament.guest.feedback.public', ['uuid' => $fb->uuid]);
+        $url = PublicFeedback::getUrl(['uuid' => $fb->uuid], panel: 'guest');
         // return PublicFeedback::getUrl(['uuid' => $fb->uuid], panel: 'guest');
-        return route('filament.guest.feedback.public', ['uuid' => $fb->uuid]);
 
-        // return PublicFeedback::getUrl(['uuid' => $fb->uuid]);
-        // return route('feedback.public', ['uuid' => $fb->uuid]);
+        dd($url);
 
     }
 

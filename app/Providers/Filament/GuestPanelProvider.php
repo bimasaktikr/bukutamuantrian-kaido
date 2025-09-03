@@ -42,10 +42,10 @@ class GuestPanelProvider extends PanelProvider
                 // PublicFeedback::route('/f/{uuid}'),   // ✅ dynamic param here
             ])
             // ->viteTheme('resources\css\filament\guest\theme.css')
-            ->routes(function (Panel $panel) {   // ✅ accept Panel, not Router
-                Route::get('/f/{uuid}', PublicFeedback::class)
-                    ->name('filament.' . $panel->getId() . '.feedback.public'); // => filament.guest.feedback.public
-            })
+            // ->routes(function (Panel $panel) {   // ✅ accept Panel, not Router
+            //     Route::get('/f/{uuid}', PublicFeedback::class)->name('feedback.public');
+            //         // ->name('filament.' . $panel->getId() . '.feedback.public'); // => filament.guest.feedback.public
+            // })
             ->discoverWidgets(in: app_path('Filament/Guest/Widgets'), for: 'App\\Filament\\Guest\\Widgets')
             ->widgets([
                 Widgets\FilamentInfoWidget::class,
