@@ -23,6 +23,8 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
+
 
 class TransactionResource extends Resource
 {
@@ -139,8 +141,13 @@ class TransactionResource extends Resource
                             'onprocess' => 'warning',
                             'done'      => 'success',
                             default     => 'gray',
-                        })
-                        ->visible(fn ($record) => $record?->queue === null),
+                        }),
+                        // ->visible(fn ($record) => $record?->queue === null),
+                    TextColumn::make('employee.name')
+                        ->label('Handled by')
+                        ->badge()
+                        ->color(fn ($state) => $state ? 'success' : 'warning')
+                        ->visible(fn ($record) => $record?->employee !== null),
 
                     TextColumn::make('feedback.submited')
                         ->label('Feedback')
@@ -155,29 +162,137 @@ class TransactionResource extends Resource
             ])
             ->defaultSort('date', 'desc') // newest first
             ->actions([
+
+                // Action::make('UpdateStatus')
+                //     ->label('')
+                //     ->form([
+                //         Forms\Components\Select::make('status')
+                //             ->label('Status')
+                //             ->options([
+                //                 'queue' => 'Queue',
+                //                 'onprocess' => 'On Process',
+                //                 'done' => 'Done',
+                //             ])
+                //             ->required()
+                //             ->reactive(), // 👈 important so Filament can react to changes
+
+                //         Forms\Components\Select::make('employee_id')
+                //             ->label('Handled by')
+                //             ->relationship('employee', 'name')
+                //             ->searchable()
+                //             ->preload()
+                //             ->visible(fn (callable $get) => $get('status') === 'onprocess') // 👈 conditional visibility
+                //             ->required(fn (callable $get) => $get('status') === 'onprocess'),
+                //     ])
+                //     ->action(function (Transaction $record, array $data) {
+                //         app(\App\Services\TransactionService::class)->updateStatus($record, $data['status']);
+
+                //         // If status is onprocess, also update employee
+                //         if ($data['status'] === 'onprocess' && isset($data['employee_id'])) {
+                //             $record->update(['employee_id' => $data['employee_id']]);
+                //         }
+
+                //         \Filament\Notifications\Notification::make()
+                //             ->title('Status updated')
+                //             ->success()
+                //             ->send();
+                //     })
+                //     ->modalHeading('Update Transaction Status')
+                //     ->modalButton('Save')
+                //     ->color('primary')
+                //     ->icon('heroicon-m-adjustments-horizontal'),
                 Action::make('UpdateStatus')
                     ->label('')
                     ->form([
-                        Forms\Components\Select::make('status')
-                            ->label('Status')
-                            ->options([
-                                'queue' => 'Queue',
+                        // Show the last/current state (read-only)
+                        Forms\Components\Placeholder::make('current_status')
+                            ->label('Current Status')
+                            ->content(fn (Transaction $record) => match ($record->status) {
+                                'queue'     => 'Queue',
                                 'onprocess' => 'On Process',
-                                'done' => 'Done',
-                            ])
-                            ->required(),
+                                'done'      => 'Done',
+                                default     => ucfirst($record->status ?? '—'),
+                            }),
+
+                        Forms\Components\Select::make('status')
+                            ->label('New Status')
+                            ->reactive()
+                            // Options depend on current record status
+                            ->options(fn (Transaction $record) => $record->status === 'onprocess'
+                                ? ['done' => 'Done'] // rule #2
+                                : [
+                                    'queue'     => 'Queue',
+                                    'onprocess' => 'On Process',
+                                    'done'      => 'Done',
+                                ])
+                            // Default preselect for convenience
+                            ->default(fn (Transaction $record) => $record->status === 'onprocess' ? 'done' : null)
+                            ->required()
+                            // Hard guard: if already onprocess, never allow queue (rule #1)
+                            ->rule(function (Transaction $record) {
+                                return function (string $attribute, $value, \Closure $fail) use ($record) {
+                                    if ($record->status === 'onprocess' && $value === 'queue') {
+                                        $fail('Once a transaction is On Process, it cannot be moved back to Queue.');
+                                    }
+                                };
+                            }),
+
+                        // Only show employee selector when moving to "onprocess"
+                        Forms\Components\Select::make('employee_id')
+                            ->label('Handled by')
+                            ->relationship('employee', 'name')
+                            ->searchable()
+                            ->preload()
+                            ->visible(fn (callable $get) => $get('status') === 'onprocess')
+                            ->required(fn (callable $get) => $get('status') === 'onprocess'),
                     ])
                     ->action(function (Transaction $record, array $data) {
-                        app(\App\Services\TransactionService::class)->updateStatus($record, $data['status']);
+                        $from = $record->status;        // last (current) state
+                        $to   = $data['status'];        // requested new state
 
+                        // Server-side enforcement (double-check)
+                        if ($from === 'onprocess' && $to === 'queue') {
+                            throw ValidationException::withMessages([
+                                'status' => 'Once a transaction is On Process, it cannot be moved back to Queue.',
+                            ]);
+                        }
+                        if ($from === 'onprocess' && $to !== 'done') {
+                            throw ValidationException::withMessages([
+                                'status' => 'When already On Process, the only allowed transition is to Done.',
+                            ]);
+                        }
+
+                        // Save employee only when moving to "onprocess"
+                        if ($to === 'onprocess') {
+                            $record->employee_id = $data['employee_id'] ?? $record->employee_id;
+                        }
+
+                        // Update status via your service
+                        app(\App\Services\TransactionService::class)->updateStatus($record, $to);
+
+                        // Rule #3: Always show last state → new state in the notification
                         \Filament\Notifications\Notification::make()
                             ->title('Status updated')
+                            ->body(sprintf('Status: %s → %s',
+                                match ($from) {
+                                    'queue'     => 'Queue',
+                                    'onprocess' => 'On Process',
+                                    'done'      => 'Done',
+                                    default     => ucfirst($from ?? '—'),
+                                },
+                                match ($to) {
+                                    'queue'     => 'Queue',
+                                    'onprocess' => 'On Process',
+                                    'done'      => 'Done',
+                                    default     => ucfirst($to ?? '—'),
+                                },
+                            ))
                             ->success()
                             ->send();
                     })
                     ->modalHeading('Update Transaction Status')
                     ->modalButton('Save')
-                    ->color('primary')  // warna tombol
+                    ->color('primary')
                     ->icon('heroicon-m-adjustments-horizontal'),
                 Action::make('viewFeedback')
                     ->label('Feedback')

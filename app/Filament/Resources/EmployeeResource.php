@@ -19,6 +19,12 @@ class EmployeeResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
+    protected static ?string $navigationGroup = 'Data Internal';
+
+    protected static ?string $navigationLabel = 'Pegawai';
+
+    protected static ?int $navigationSort = 3;
+
     public static function form(Form $form): Form
     {
         return $form
@@ -31,7 +37,24 @@ class EmployeeResource extends Resource
     {
         return $table
             ->columns([
-                //
+            \Filament\Tables\Columns\TextColumn::make('name')
+                ->label('Nama')
+                ->sortable(),
+            \Filament\Tables\Columns\TextColumn::make('nip')
+                ->label('NIP')
+                ->sortable(),
+            \Filament\Tables\Columns\TextColumn::make('jenis_kelamin')
+                ->label('Jenis Kelamin')
+                ->sortable(),
+            \Filament\Tables\Columns\TextColumn::make('user_id')
+                ->label('User ID')
+                ->sortable(),
+            \Filament\Tables\Columns\TextColumn::make('team.name')
+                ->label('Team')
+                ->sortable(),
+            \Filament\Tables\Columns\TextColumn::make('tanggal_lahir')
+                ->label('Tanggal Lahir')
+                ->date(),
             ])
             ->filters([
                 //

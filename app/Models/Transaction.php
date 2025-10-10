@@ -56,5 +56,9 @@ class Transaction extends Model
     {
         return $this->hasOne(Feedback::class);
     }
+    public function employee(): BelongsTo
+    {
+        return $this->belongsTo(Employee::class);
+    }
 
 }

@@ -32,6 +32,9 @@
         $serviceDate = optional($this->feedback?->transaction)->date
             ? \Carbon\Carbon::parse($this->feedback->transaction->date)->format('d M Y')
             : null;
+        $employee = optional($this->feedback?->transaction?->employee);
+        $empName  = $employee?->name;
+        $empR5ole  = $employee?->position ?? $employee?->job_title;
     @endphp
 
     <div class="pf-wrap">
@@ -51,6 +54,15 @@
                             &nbsp;pada tanggal {{ $serviceDate }}
                         @endif
                     </span>
+
+                    @if ($empName)
+                        <div style="display:flex;justify-content:center;gap:.5rem;margin-top:.75rem;font-size:.9rem;color:#374151">
+                            Dilayani oleh <strong style="color:#111827">&nbsp;{{ $empName }}</strong>
+                            {{-- @if ($empRole) · <span>{{ $empRole }}</span>@endif --}}
+                        </div>
+                    @else
+                        <div style="text-align:center;margin-top:.75rem;color:#6B7280">Dilayani oleh: —</div>
+                    @endif
                 </div>
             </div>
 

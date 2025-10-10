@@ -114,6 +114,10 @@ class AdminPanelProvider extends PanelProvider
                     ->label('Master Data')
                     ->icon('heroicon-o-server-stack')
                     ->collapsed(),
+                NavigationGroup::make('Data Internal')
+                    ->label('Data Internal')
+                    ->icon('heroicon-o-server-stack')
+                    ->collapsed(),
                 NavigationGroup::make('Layanan')
                     ->label('Layanan')
                     ->icon('heroicon-o-shopping-cart')
