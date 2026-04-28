@@ -41,19 +41,41 @@ class FeedbackResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->defaultSort('transaction.date', 'desc')
             ->columns([
-                TextColumn::make('uuid')->label('UUID')->copyable(),
-                TextColumn::make('transaction.id')->label('Trans ID')->sortable(),
-                TextColumn::make('transaction.customer.name')->label('Customer')->searchable(),
+                TextColumn::make('uuid')
+                    ->label('UUID')
+                    ->copyable(),
+                TextColumn::make('transaction.id')
+                    ->label('Trans ID')->sortable(),
+                TextColumn::make('transaction.customer.name')
+                    ->label('Customer')
+                    ->searchable()
+                    ->sortable()
+                    ,
+                TextColumn::make('transaction.date')
+                    ->label('Date')
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('rate')->sortable(),
                 TextColumn::make('submited')->label('Submitted')->badge()
                     ->color(fn ($state) => $state ? 'success' : 'gray')
                     ->formatStateUsing(fn ($state) => $state ? 'Yes' : 'No'),
-                // TextColumn::make('public_url')
-                //     ->label('Public URL')
-                //     ->getStateUsing(fn (Feedback $r) => route('public.feedback.show', $r->uuid))
-                //     ->copyable()
-                //     ->toggleable(),
+                TextColumn::make('public_url')
+                    ->label('Public URL')
+                    ->getStateUsing(fn (Feedback $r) =>
+                        route('filament.guest.pages.f.{uuid}', [
+                            'uuid' => $r->uuid,
+                        ])
+                    )
+                    ->url(fn (Feedback $r) =>
+                        route('filament.guest.pages.f.{uuid}', [
+                            'uuid' => $r->uuid,
+                        ])
+                    )
+                    ->openUrlInNewTab()
+                    ->copyable()
+                    ->toggleable(),
             ])
             ->filters([])
             ->actions([
