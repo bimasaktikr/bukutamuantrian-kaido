@@ -41,22 +41,56 @@ class FeedbackResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->defaultSort('transaction.date', 'desc')
+            // ->defaultSort('transaction.date', 'desc')
+            ->modifyQueryUsing(fn (Builder $query) =>
+            $query->leftJoin('transactions', 'feedback.transaction_id', '=', 'transactions.id')
+                ->select('feedback.*')
+                ->orderByDesc('transactions.date')
+            )
             ->columns([
                 TextColumn::make('uuid')
                     ->label('UUID')
                     ->copyable(),
-                TextColumn::make('transaction.id')
-                    ->label('Trans ID')->sortable(),
-                TextColumn::make('transaction.customer.name')
-                    ->label('Customer')
-                    ->searchable()
-                    ->sortable()
-                    ,
-                TextColumn::make('transaction.date')
-                    ->label('Date')
-                    ->searchable()
-                    ->sortable(),
+                // TextColumn::make('transaction.id')
+                //     ->label('Trans ID')->sortable(),
+                // TextColumn::make('transaction.customer.name')
+                //     ->label('Customer')
+                //     ->searchable()
+                //     ->sortable()
+                //     ,
+                // TextColumn::make('transaction.date')
+                //     ->label('Date')
+                //     ->searchable()
+                //     ->sortable(),
+                TextColumn::make('transaction_detail')
+                    ->label('Transaction')
+                    ->html()
+                    ->getStateUsing(function (Feedback $record) {
+                        return "
+                            <div class='space-y-1'>
+                                <div class='text-sm font-bold text-primary-600'>
+                                    #{$record->transaction->id}
+                                </div>
+
+                                <div class='text-sm text-gray-900'>
+                                    {$record->transaction->customer->name}
+                                </div>
+
+                                <div class='text-sm text-gray-900'>
+                                    {$record->transaction->service->name}
+                                </div>
+
+                                <div class='text-xs text-gray-500'>
+                                    {$record->transaction->date}
+                                </div>
+                            </div>
+                        ";
+                    })
+                    ->searchable(query: function ($query, $search) {
+                        $query->whereHas('transaction.customer', fn ($q) =>
+                            $q->where('name', 'like', "%{$search}%")
+                        );
+                    }),
                 TextColumn::make('rate')->sortable(),
                 TextColumn::make('submited')->label('Submitted')->badge()
                     ->color(fn ($state) => $state ? 'success' : 'gray')
