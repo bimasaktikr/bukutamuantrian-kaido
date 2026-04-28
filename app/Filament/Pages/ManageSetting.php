@@ -18,7 +18,7 @@ class ManageSetting extends SettingsPage
 
     protected static string $settings = KaidoSetting::class;
 
-    protected static ?string $navigationGroup = 'Pengaturan';
+    protected static ?string $navigationGroup = 'System';
 
     public function form(Form $form): Form
     {

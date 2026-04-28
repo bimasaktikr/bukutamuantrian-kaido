@@ -26,6 +26,7 @@
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.9",
         "maatwebsite/excel": "^3.1",
+        "opcodesio/log-viewer": "^3.24",
         "owenvoke/blade-fontawesome": "^2.8",
         "pxlrbt/filament-excel": "^2.5",
         "resend/resend-laravel": "^0.15.0",

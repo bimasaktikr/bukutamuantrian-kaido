@@ -25,7 +25,7 @@ class TransactionReport extends Page implements HasTable
     use InteractsWithTable;
 
     protected static ?string $navigationIcon  = 'heroicon-o-document-chart-bar';
-    protected static ?string $navigationGroup = 'Transaksi';
+    protected static ?string $navigationGroup = 'Operasional';
     protected static ?string $navigationLabel = 'Transaction Report';
     protected static ?string $slug            = 'report-transactions';
     protected static string  $view            = 'filament.pages.transaction-report';

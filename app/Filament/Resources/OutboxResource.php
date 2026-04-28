@@ -22,7 +22,7 @@ class OutboxResource extends Resource
 
     protected static ?string $navigationLabel = "Outbox";
 
-    protected static ?string $navigationGroup = "Whatsapp";
+    protected static ?string $navigationGroup = "WhatsApp";
 
 
     public static function form(Form $form): Form
@@ -36,6 +36,7 @@ class OutboxResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->defaultSort('created_at', 'desc')
             ->columns([
                 Tables\Columns\TextColumn::make('to')
                     ->label('to')

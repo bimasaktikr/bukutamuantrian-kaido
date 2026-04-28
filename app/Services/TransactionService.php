@@ -162,7 +162,9 @@ class TransactionService
         // $url     = $this->feedbackService->publicUrl($feedback);
         // $url = \App\Filament\Guest\Pages\PublicFeedback::getUrl(['uuid' => $fb->uuid], panel: 'guest');
 
-        $url     = route('filament.guest.feedback.public', ['uuid' => $feedback->uuid]);
+        $url     = route('filament.guest.pages.f.{uuid}', [
+                        'uuid' => $feedback->uuid,
+                    ]);
         $message = $this->buildFeedbackRequestMessage($tx, $url);
         $to      = $tx->customer->phone ?? null;
 

@@ -72,12 +72,7 @@ class AdminPanelProvider extends PanelProvider
                 Pages\Dashboard::class,
                 TransactionReport::class,
             ])
-            ->navigationGroups([
-                'Dashboard',       // 1st group
-                'Transaction',      // 2nd group
-                'Data',         // 3rd group
-                'Settings',        // 4th group
-            ])
+           
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
                 Widgets\AccountWidget::class,
@@ -106,39 +101,25 @@ class AdminPanelProvider extends PanelProvider
             )
             ->databaseNotifications()
             ->navigationGroups([
-                NavigationGroup::make('Transaksi')
-                    ->label('Transaksi')
-                    ->icon('heroicon-o-numbered-list')
-                    ->collapsed(),
-                NavigationGroup::make('Master Data')
-                    ->label('Master Data')
-                    ->icon('heroicon-o-server-stack')
-                    ->collapsed(),
-                NavigationGroup::make('Data Internal')
-                    ->label('Data Internal')
-                    ->icon('heroicon-o-server-stack')
-                    ->collapsed(),
+                NavigationGroup::make()
+                    ->label('Operasional')
+                    ->icon('heroicon-o-clipboard-document-list'),
+                
                 NavigationGroup::make('Layanan')
                     ->label('Layanan')
-                    ->icon('heroicon-o-shopping-cart')
-                    ->collapsed(),
-                NavigationGroup::make('Pengaturan')
-                    ->label('Pengaturan')
-                    ->icon('heroicon-o-wrench-screwdriver')
-                    ->collapsed(),
-                NavigationGroup::make('User')
-                    ->label('User')
-                    ->icon('heroicon-o-users')
-                    ->collapsed(),
-                NavigationGroup::make('Filament Shield')
-                    ->label('Filament Shield')
-                    ->icon('heroicon-o-shield-check')
-                    ->collapsed(),
-                NavigationGroup::make('Whatsapp')
-                    ->label('Whatsapp')
-                    ->icon('heroicon-o-server')
-                    ->collapsed(),
+                    ->icon('heroicon-o-shopping-cart'),
 
+                NavigationGroup::make()
+                    ->label('WhatsApp')
+                    ->icon('heroicon-o-chat-bubble-left-right'),
+
+                NavigationGroup::make()
+                    ->label('Master Data')
+                    ->icon('heroicon-o-circle-stack'),
+
+                NavigationGroup::make()
+                    ->label('System')
+                    ->icon('heroicon-o-cog-6-tooth'),
                 ])
             ;
     }
@@ -148,12 +129,12 @@ class AdminPanelProvider extends PanelProvider
         $plugins = [
             ThemesPlugin::make(),
             FilamentShieldPlugin::make(),
-            ApiServicePlugin::make(),
+            // ApiServicePlugin::make(),
             BreezyCore::make()
                 ->myProfile(
                     shouldRegisterUserMenu: true, // Sets the 'account' link in the panel User Menu (default = true)
                     shouldRegisterNavigation: true, // Adds a main navigation item for the My Profile page (default = false)
-                    navigationGroup: 'Settings', // Sets the navigation group for the My Profile page (default = null)
+                    navigationGroup: 'System', // Sets the navigation group for the My Profile page (default = null)
                     hasAvatars: true, // Enables the avatar upload form component (default = false)
                     slug: 'my-profile'
                 )
